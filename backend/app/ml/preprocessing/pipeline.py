@@ -300,5 +300,40 @@ def transform_single_sample(
     return X_transformed, feature_cols
 
 
+def transform_batch_samples(
+    samples: List[Dict[str, Any]],
+    pipeline_path: str,
+) -> Tuple[np.ndarray, List[str]]:
+    """
+    Transform multiple inference samples using saved artefacts.
+
+    Returns (X_transformed, feature_names).
+    """
+    if not samples:
+        return np.empty((0, 0), dtype=np.float64), []
+
+    with open(pipeline_path, "rb") as f:
+        artefacts = pickle.load(f)
+
+    pipeline: Pipeline = artefacts["pipeline"]
+    cat_encoders: Dict[str, LabelEncoder] = artefacts.get("cat_encoders", {})
+    feature_cols: List[str] = artefacts["feature_cols"]
+
+    rows = []
+    for s in samples:
+        row = {col: s.get(col, np.nan) for col in feature_cols}
+        rows.append(row)
+
+    df_batch = pd.DataFrame(rows)
+    df_batch = df_batch.replace([np.inf, -np.inf], np.nan)
+
+    categorical_cols = list(cat_encoders.keys())
+    df_batch, _ = _encode_categoricals(df_batch, categorical_cols, fit_encoders=cat_encoders)
+
+    X = df_batch[feature_cols].astype(np.float64).values
+    X_transformed = pipeline.transform(X)
+    return X_transformed, feature_cols
+
+
 # Alias for backward and forward compatibility
 fit_transform_dataset = build_preprocessing_pipeline

@@ -129,6 +129,10 @@ class Prediction(Base):
     explanation  = relationship("Explanation",  back_populates="prediction", uselist=False, cascade="all, delete-orphan")
     audit_record = relationship("AuditRecord",  back_populates="prediction", uselist=False, cascade="all, delete-orphan")
 
+    @property
+    def probabilities(self) -> Optional[Dict[str, float]]:
+        return json.loads(self.probabilities_json) if self.probabilities_json else None
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Explanation

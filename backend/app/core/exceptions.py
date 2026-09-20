@@ -50,6 +50,11 @@ class PredictionFailedError(SentinelCryptException):
         super().__init__(message, "PREDICTION_FAILED")
 
 
+class PredictionNotFoundError(SentinelCryptException):
+    def __init__(self, prediction_id: str):
+        super().__init__(f"Prediction '{prediction_id}' not found.", "PREDICTION_NOT_FOUND")
+
+
 # ── Explainability ────────────────────────────────────────────────────────────
 
 class ExplanationFailedError(SentinelCryptException):
