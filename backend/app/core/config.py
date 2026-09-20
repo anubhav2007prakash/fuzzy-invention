@@ -4,8 +4,8 @@ from typing import List, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
-# Repository root (two levels up from backend/app/core/)
-_REPO_ROOT = Path(__file__).resolve().parents[4]
+# Repository root (three levels up from backend/app/core/)
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "SentinelCrypt AI"

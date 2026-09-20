@@ -298,3 +298,7 @@ def transform_single_sample(
     X = df_single[feature_cols].astype(np.float64).values
     X_transformed = pipeline.transform(X)
     return X_transformed, feature_cols
+
+
+# Alias for backward and forward compatibility
+fit_transform_dataset = build_preprocessing_pipeline

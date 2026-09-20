@@ -1,7 +1,7 @@
-"""SQLAlchemy ORM Models — single authoritative source for SentinelCrypt AI."""
+import json
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (
     Boolean, DateTime, Float, ForeignKey, Integer,
@@ -99,6 +99,14 @@ class ModelRecord(Base):
     experiment  = relationship("Experiment", back_populates="models")
     predictions = relationship("Prediction", back_populates="model")
     evaluations = relationship("ModelEvaluation", back_populates="model")
+
+    @property
+    def metrics(self) -> Dict[str, Any]:
+        return json.loads(self.metrics_json or "{}")
+
+    @property
+    def feature_schema(self) -> List[Dict[str, str]]:
+        return json.loads(self.feature_schema_json or "[]")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
