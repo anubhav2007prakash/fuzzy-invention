@@ -95,3 +95,19 @@ class AuditService:
         result: VerificationResult = verify_ledger(records)
         res_dict = result.to_dict()
         return AuditVerificationResponse(**res_dict)
+
+    def get_ledger_status(self) -> Dict[str, Any]:
+        """Get a high-level status summary of the cryptographic audit ledger."""
+        total = self.repo.count()
+        last_record = self.repo.get_last_record()
+        verification = self.verify_ledger_chain()
+
+        return {
+            "total_records": total,
+            "latest_sequence": last_record.sequence_number if last_record else 0,
+            "latest_record_hash": last_record.record_hash if last_record else None,
+            "genesis_previous_hash": GENESIS_PREVIOUS_HASH,
+            "tamper_detected": verification.tamper_detected,
+            "is_intact": verification.verified,
+            "verification_message": verification.message,
+        }

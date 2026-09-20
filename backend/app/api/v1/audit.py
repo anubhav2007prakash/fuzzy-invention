@@ -1,7 +1,116 @@
-"""Cryptographic Audit Ledger endpoints — stub for Phase 5."""
-from fastapi import APIRouter
+"""Cryptographic Audit Ledger endpoints for SentinelCrypt AI."""
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+
+from backend.app.db.database import get_db
+from backend.app.schemas.audit import (
+    AuditRecordResponse,
+    AuditVerificationRequest,
+    AuditVerificationResponse,
+)
+from backend.app.services.audit_service import AuditService
+
 router = APIRouter()
 
-@router.get("", summary="List audit records")
-def list_audit():
-    return {"records": [], "total": 0, "ledger_verified": False}
+
+@router.get(
+    "/records",
+    summary="List audit records in sequential order",
+    response_model=Dict[str, Any],
+)
+def list_records(
+    skip: int = Query(0, ge=0, description="Offset (records to skip)"),
+    limit: int = Query(100, ge=1, le=500, description="Page limit"),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Retrieve paginated cryptographic audit records ordered strictly by sequence number."""
+    service = AuditService(db)
+    records = service.list_audit_records(skip=skip, limit=limit)
+    total = service.count()
+    return {
+        "records": [r.model_dump() for r in records],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
+
+
+@router.get(
+    "/records/{record_id}",
+    response_model=AuditRecordResponse,
+    summary="Get a specific audit record by record ID",
+)
+def get_record(
+    record_id: str,
+    db: Session = Depends(get_db),
+) -> AuditRecordResponse:
+    """Fetch an individual audit record and its canonical evidence payload."""
+    service = AuditService(db)
+    record = service.get_audit_record(record_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Audit record '{record_id}' not found.",
+        )
+    return record
+
+
+@router.get(
+    "/predictions/{prediction_id}",
+    response_model=AuditRecordResponse,
+    summary="Get the audit record anchored to a prediction ID",
+)
+def get_record_by_prediction(
+    prediction_id: str,
+    db: Session = Depends(get_db),
+) -> AuditRecordResponse:
+    """Retrieve the cryptographic audit record linked to a specific inference prediction."""
+    service = AuditService(db)
+    record = service.get_audit_record_by_prediction(prediction_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No audit record found for prediction '{prediction_id}'.",
+        )
+    return record
+
+
+@router.get(
+    "/status",
+    summary="Get ledger status and summary integrity information",
+    response_model=Dict[str, Any],
+)
+def get_status(
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Return high-level audit ledger health, latest sequence number, latest hash, and integrity check."""
+    service = AuditService(db)
+    return service.get_ledger_status()
+
+
+@router.post(
+    "/verify",
+    response_model=AuditVerificationResponse,
+    summary="Mathematically verify ledger chain integrity and detect tampering",
+)
+def verify_ledger_chain(
+    payload: Optional[AuditVerificationRequest] = None,
+    db: Session = Depends(get_db),
+) -> AuditVerificationResponse:
+    """Execute mathematical verification over the stored cryptographic hash chain.
+
+    Validates:
+    1. Deterministic canonical JSON payload hashes.
+    2. Strict sequence number continuity (no dropped records).
+    3. Sequential SHA-256 hash pointer linkage: RecordHash[i] = SHA-256(RecordHash[i-1] + PayloadHash[i]).
+    4. Immediate localization of any corrupted sequence number.
+    """
+    req = payload or AuditVerificationRequest()
+    service = AuditService(db)
+    start_seq = req.start_sequence or 1
+    end_seq = req.end_sequence if not req.verify_entire_chain else None
+
+    return service.verify_ledger_chain(start_sequence=start_seq, end_sequence=end_seq)
