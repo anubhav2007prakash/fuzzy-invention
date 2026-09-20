@@ -152,6 +152,10 @@ class Explanation(Base):
 
     prediction = relationship("Prediction", back_populates="explanation")
 
+    @property
+    def top_features(self) -> List[Dict[str, Any]]:
+        return json.loads(self.top_features_json or "[]")
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AuditRecord (Cryptographic Hash Chain)
