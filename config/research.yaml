@@ -1,0 +1,4 @@
+environment: research
+debug: false
+logging:
+  level: INFO

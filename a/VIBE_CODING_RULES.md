@@ -1,0 +1,2 @@
+# Vibe Coding Rules
+Read MASTER_SPECIFICATION.md first. Inspect the repository before editing. Make incremental changes. Do not invent requirements, APIs, dependencies, citations, datasets, or results. Do not remove tests to make code pass. Do not hardcode secrets. Do not silently redesign architecture. Do not call hash chaining blockchain. Do not describe SHAP as causal proof. Keep security testing authorized and local.

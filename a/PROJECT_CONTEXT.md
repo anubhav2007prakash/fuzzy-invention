@@ -1,0 +1,2 @@
+# Project Context
+SentinelCrypt AI is a defensive research platform combining ML intrusion detection, XAI, and tamper-evident audit logging. The research question concerns how explanation reliability and cryptographic evidence verification contribute to trustworthiness. Initial models are Logistic Regression and Random Forest. Core flow: dataset -> preprocessing -> training -> prediction -> explanation -> audit -> verification -> experiments.

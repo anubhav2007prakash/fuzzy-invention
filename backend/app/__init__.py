@@ -1,0 +1,1 @@
+"""SentinelCrypt AI Application Package."""

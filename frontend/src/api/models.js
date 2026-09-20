@@ -1,0 +1,1 @@
+import { fetchApi } from './client';

@@ -1,0 +1,4 @@
+environment: testing
+debug: false
+logging:
+  level: INFO

@@ -1,0 +1,1 @@
+# Hash Chain Specification
