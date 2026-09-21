@@ -108,10 +108,12 @@ Independent Verification & Tamper Detection
 
 | Experiment ID | Title | Research Focus | Primary Metrics |
 |---|---|---|---|
-| **EXP-A** | Cross-Dataset Generalization | Train on UNSW-NB15, evaluate on CICIDS2017 to quantify out-of-distribution generalization drop. | F1-Score degradation ($\Delta F_1$), Recall, False Positive Rate (FPR). |
-| **EXP-B** | Explanation Reliability & Stability | Evaluate SHAP attribution consistency across models and under controlled feature noise ($\epsilon \sim \mathcal{N}(0, \sigma^2)$). | Local Lipschitz continuity constant, Top-$k$ Jaccard similarity, Faithfulness. |
-| **EXP-C** | Cryptographic Evidence Integrity | Benchmark SHA-256 hash chain verification runtime and validate 100% tamper detection rate under synthetic bit-flips. | Tamper detection rate ($100\%$), False positive rate ($0\%$), Verification latency vs $N$. |
-| **EXP-D** | Model Comparison & Verification Trade-Offs | Compare interpretable linear models against non-linear tree ensembles on inference throughput vs. XAI compute overhead. | Accuracy, F1-Score, Inference Latency (ms), SHAP Compute Time (ms). |
+| **EXP-A** | Cross-Dataset Generalization | Train on one synthetic partition, evaluate on a distribution-shifted partition to quantify generalization gap. | F1-Score degradation ($\Delta F_1$), Recall, False Positive Rate (FPR). |
+| **EXP-B** | Explanation Reliability & Stability | Evaluate SHAP attribution consistency under controlled Gaussian feature noise. | Cosine similarity stability score, per-noise-level metrics. |
+| **EXP-C** | Cryptographic Evidence Integrity | Benchmark SHA-256 hash chain verification and detect controlled tampering scenarios. | Detection of payload mutations, pointer modifications, and record deletions. |
+| **EXP-D** | Model Comparison & Verification Trade-Offs | Compare Logistic Regression vs Random Forest on inference throughput and cryptographic overhead. | Accuracy, F1-Score, Inference Latency (ms), Cryptographic Overhead (μs). |
+
+> **Important:** Experiment results reported below are from controlled synthetic benchmarks. Cross-dataset generalization (EXP-A) currently uses synthetic data partitions with distribution shift, not real UNSW-NB15/CICIDS2017 datasets. Tamper detection results (EXP-C) reflect the tested scenarios on a local chain and do not constitute a universal guarantee.
 
 ---
 
@@ -183,6 +185,9 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Run tests to verify installation
+pytest backend/tests -v
+
 # Launch FastAPI backend
 uvicorn backend.app.main:app --reload --port 8000
 ```
@@ -196,9 +201,29 @@ npm run dev
 ```
 The React dashboard will be accessible at: [http://localhost:5173](http://localhost:5173)
 
-### 4. Running Automated Tests
+### 4. Verify the Golden Path
 ```bash
-pytest backend/tests -v
+# Upload a dataset via API
+curl -X POST http://localhost:8000/api/v1/datasets \
+  -F "file=@your_dataset.csv"
+
+# Train a model
+curl -X POST http://localhost:8000/api/v1/models/train \
+  -H "Content-Type: application/json" \
+  -d '{"dataset_id": "<id>", "model_type": "random_forest"}'
+
+# Run a prediction
+curl -X POST http://localhost:8000/api/v1/predictions \
+  -H "Content-Type: application/json" \
+  -d '{"model_id": "<id>", "features": {...}}'
+
+# Verify the audit ledger
+curl http://localhost:8000/api/v1/audit/verify
+```
+
+### 5. Running Automated Tests
+```bash
+pytest backend/tests -v  # Run all backend tests (unit + integration)
 ```
 
 ---
@@ -206,9 +231,98 @@ pytest backend/tests -v
 ## ⚖️ Scientific Rigor & Benchmark Disclaimer
 
 - **Evaluation Protocol:** All preprocessing transformations (scalers, encoders, imputers) are fitted strictly on the training partition to eliminate data leakage.
-- **Metrics Transparency:** We report macro/weighted Precision, Recall, F1-Score, False Positive Rate (FPR), and Confusion Matrices alongside Accuracy.
-- **Cryptographic Scope:** The audit ledger uses an append-only cryptographic hash chain based on standard SHA-256 for tamper evidence. It is explicitly not a distributed blockchain.
-- **Scope Limitation:** SentinelCrypt AI is an academic research prototype evaluated against benchmark datasets (UNSW-NB15, CICIDS2017) and does not constitute an enterprise-grade production security appliance.
+- **Metrics Transparency:** We report macro/weighted Precision, Recall, F1-Score, False Positive Rate (FPR), Confusion Matrices, and PR-AUC alongside Accuracy.
+- **Cryptographic Scope:** The audit ledger uses an append-only cryptographic hash chain based on standard SHA-256 for tamper **evidence** (detection), not tamper **prevention**. It is explicitly not a distributed blockchain and does not provide consensus, immutability guarantees, or resistance to a compromised server administrator.
+- **Scope Limitation:** SentinelCrypt AI is an academic research prototype. Current experiments use synthetic data with controlled distribution shifts. Cross-dataset generalization on real UNSW-NB15/CICIDS2017 datasets is planned future work.
+- **Result Status:** Numbers reported in experiment results reflect the specific synthetic benchmarks executed. They should not be extrapolated to production network environments without further validation.
+
+### What is implemented, measured, and planned
+| Category | Status |
+|---|---|
+| ML pipeline with leakage-free preprocessing | ✅ Implemented |
+| SHAP-based explanations with stability analysis | ✅ Implemented |
+| SHA-256 hash chain audit ledger | ✅ Implemented |
+| Tamper detection on synthetic chain | ✅ Measured (controlled scenarios) |
+| Cross-dataset generalization (real datasets) | 🔲 Planned (future work) |
+| Production-grade security hardening | 🔲 Planned |
+
+---
+
+## 🔒 Threat Model & Security Assumptions
+
+### What the Cryptographic Ledger Protects Against
+- **Payload tampering:** Any modification to stored evidence (features, predictions, timestamps) is detected because the SHA-256 hash chain would break.
+- **Record deletion:** Removing or reordering records breaks the sequential hash chain linkage.
+- **Pointer manipulation:** Changing the `previous_hash` field in any record breaks chain verification.
+- **Retrospective alteration:** Modifying a past record invalidates all subsequent hashes in the chain.
+
+### What the Ledger Does NOT Protect Against
+- **Compromised server administrator:** A server admin with write access to the database can delete all records, modify the genesis hash, or rebuild the chain.
+- **Pre-recording manipulation:** Data manipulated before being anchored into the ledger is not detectable.
+- **Availability attacks:** The ledger provides integrity, not availability. An attacker who deletes the database destroys all evidence.
+- **Consensus/distribution:** This is a single-server hash chain, not a distributed blockchain. There is no consensus protocol.
+- **Side-channel attacks:** Timing, memory, or other side-channel attacks are not addressed.
+
+### Assumptions
+- The server operating system and Python runtime are trusted.
+- The database file is backed up regularly (the ledger provides tamper evidence, not backup).
+- API authentication is handled at the network level (not implemented in this prototype).
+- Dataset files are validated before ingestion (schema + checksum verification).
+
+---
+
+## 📚 Dataset Acquisition
+
+### Synthetic Data (Current Implementation)
+All current experiments use procedurally generated synthetic network flow data with controlled distribution shifts. No external datasets are required to run the experiments.
+
+### Planned: Real-World Datasets
+
+#### UNSW-NB15
+- **Source:** https://research.unsw.edu.au/projects/unsw-nb15-dataset
+- **Version:** UNSW-NB15_1 (CSV files)
+- **Expected structure:** 49 features + 2 label columns (`label`, `attack_cat`)
+- **License:** Creative Commons Attribution 4.0 (CC BY 4.0)
+- **Usage:** Train IDS models on diverse attack types including Fuzzers, Analysis, Backdoors, DoS, Exploits, Generic, Reconnaissance, Shellcode, and Worms.
+
+#### CICIDS2017
+- **Source:** https://www.unb.ca/cic/datasets/ids-2017.html
+- **Version:** Wednesday working hours (Jun 21, 2017)
+- **Expected structure:** 78 features + 1 label column (` Label`)
+- **License:** CC BY 4.0 (Canadian Institute for Cybersecurity)
+- **Usage:** Evaluate cross-dataset generalization against UNSW-NB15.
+
+---
+
+## 🔄 Research Reproducibility Instructions
+
+To reproduce the experiments in this project:
+
+```bash
+# 1. Set up environment
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Run tests to verify installation
+pytest backend/tests -v
+
+# 3. Execute experiments (via API or scripts)
+python scripts/run_experiment.py --experiment EXP-A
+python scripts/run_experiment.py --experiment EXP-B
+python scripts/run_experiment.py --experiment EXP-C
+python scripts/run_experiment.py --experiment EXP-D
+
+# 4. Results are stored in results/ as JSON files
+ls results/
+```
+
+### Reproducibility Metadata
+Every experiment result records:
+- Random seed (42 for all experiments)
+- Python and package versions (numpy, pandas, scikit-learn, shap)
+- Platform information
+- Timestamp
+- Full experiment configuration as JSON
 
 ---
 

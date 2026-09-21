@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import os
+import platform
+import sys
 import time
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -38,6 +41,24 @@ from backend.app.xai.stability import ExplanationStabilityAnalyzer
 
 RESULTS_DIR = Path(settings.RESULTS_DIR)
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _reproducibility_metadata() -> Dict[str, Any]:
+    """Collect reproducibility metadata for experiment results."""
+    try:
+        import shap as shap_lib
+        shap_version = shap_lib.__version__
+    except (ImportError, AttributeError):
+        shap_version = "unknown"
+    return {
+        "python_version": sys.version.split()[0],
+        "platform": platform.platform(),
+        "numpy_version": np.__version__,
+        "pandas_version": pd.__version__,
+        "sklearn_version": sklearn.__version__,
+        "shap_version": shap_version,
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
 
 
 class ExperimentService:
@@ -122,7 +143,15 @@ class ExperimentService:
     # ─────────────────────────────────────────────────────────────────────────
 
     def run_exp_a(self, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Execute EXP-A: Quantifies in-domain vs out-of-domain Generalization Gap."""
+        """Execute EXP-A: Quantifies in-domain vs out-of-domain Generalization Gap.
+
+        Uses synthetic data partitions with controlled distribution shift.
+        The source partition uses shift_scale=1.0 and the target uses shift_scale=1.65
+        with different attack ratios to simulate distribution shift.
+
+        NOTE: This does NOT use real UNSW-NB15 or CICIDS2017 datasets.
+        Cross-dataset evaluation on real datasets is planned future work.
+        """
         cfg = config or {}
         n_samples = cfg.get("n_samples", 1200)
         random_state = cfg.get("random_state", 42)
@@ -170,18 +199,24 @@ class ExperimentService:
 
         result = {
             "experiment_id": "EXP-A",
-            "title": "Cross-Dataset Generalization Gap",
+            "title": "Cross-Dataset Generalization Gap (Synthetic Data)",
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "status": "COMPLETED",
+            "reproducibility": _reproducibility_metadata(),
             "parameters": {
                 "n_samples": n_samples,
                 "model": "RandomForestClassifier",
                 "random_state": random_state,
+                "source_shift_scale": 1.0,
+                "target_shift_scale": 1.65,
+                "source_attack_ratio": 0.3,
+                "target_attack_ratio": 0.35,
                 "features": features,
+                "note": "Synthetic data partitions with controlled distribution shift. Not real UNSW-NB15/CICIDS2017 datasets.",
             },
             "metrics": {
                 "in_distribution": {
-                    "dataset": "UNSW-NB15 (Synthetic Partition)",
+                    "dataset": "Source Synthetic Partition (shift_scale=1.0)",
                     "accuracy": round(src_acc, 4),
                     "f1_score": round(src_f1, 4),
                     "precision": round(src_prec, 4),
@@ -189,7 +224,7 @@ class ExperimentService:
                     "roc_auc": round(src_auc, 4),
                 },
                 "out_of_distribution": {
-                    "dataset": "CICIDS2017 (Shifted Partition)",
+                    "dataset": "Target Synthetic Partition (shift_scale=1.65)",
                     "accuracy": round(tgt_acc, 4),
                     "f1_score": round(tgt_f1, 4),
                     "precision": round(tgt_prec, 4),
@@ -265,6 +300,7 @@ class ExperimentService:
             "title": "XAI Explanation Stability under Input Perturbation",
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "status": "COMPLETED",
+            "reproducibility": _reproducibility_metadata(),
             "parameters": {
                 "model_type": "TreeSHAP (RandomForest)",
                 "noise_std_levels": noise_levels,
@@ -394,9 +430,10 @@ class ExperimentService:
 
         result = {
             "experiment_id": "EXP-C",
-            "title": "Cryptographic Audit Integrity & Adversarial Tamper Attacks",
+            "title": "Cryptographic Audit Integrity & Adversarial Tamper Attacks (Synthetic Benchmarks)",
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "status": "COMPLETED",
+            "reproducibility": _reproducibility_metadata(),
             "parameters": {
                 "n_blocks_evaluated": n_blocks,
                 "hash_algorithm": "SHA-256 (Canonical RFC 8785)",
@@ -486,6 +523,7 @@ class ExperimentService:
             "title": "Model Architecture & Runtime Overhead Comparison",
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "status": "COMPLETED",
+            "reproducibility": _reproducibility_metadata(),
             "comparison": {
                 "logistic_regression": {
                     "model_type": "Logistic Regression (Linear Baseline)",

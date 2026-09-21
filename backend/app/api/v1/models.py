@@ -1,6 +1,7 @@
 """Model management endpoints for SentinelCrypt AI."""
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from backend.app.core.exceptions import (
     DatasetNotFoundError,
     ModelNotFoundError,
     ModelTrainingError,
+    validate_uuid_format,
 )
 from backend.app.db.database import get_db
 from backend.app.schemas.model import (
@@ -17,6 +19,8 @@ from backend.app.schemas.model import (
     ModelTrainRequest,
 )
 from backend.app.services.training_service import TrainingService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -40,9 +44,10 @@ def train_model(
     except ModelTrainingError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        logger.exception("Model training failed unexpectedly")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Model training encountered an unexpected error: {str(e)}",
+            detail="Model training encountered an unexpected error.",
         )
 
 
@@ -78,6 +83,7 @@ def get_model(
     db: Session = Depends(get_db),
 ) -> ModelResponse:
     """Fetch model metadata and high-level evaluation metrics."""
+    validate_uuid_format(model_id, "model")
     service = TrainingService(db)
     try:
         return service.get_model(model_id)
@@ -95,6 +101,7 @@ def get_model_metrics(
     db: Session = Depends(get_db),
 ) -> ModelMetricsResponse:
     """Fetch full evaluation breakdown including confusion matrix and per-class reports."""
+    validate_uuid_format(model_id, "model")
     service = TrainingService(db)
     try:
         return service.get_model_metrics(model_id)
@@ -111,6 +118,7 @@ def delete_model(
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Remove a model and clean up its saved artifacts."""
+    validate_uuid_format(model_id, "model")
     service = TrainingService(db)
     try:
         service.delete_model(model_id)

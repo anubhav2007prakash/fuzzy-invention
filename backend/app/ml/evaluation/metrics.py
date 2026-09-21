@@ -1,10 +1,45 @@
 """Performance Metrics Engine for SentinelCrypt AI.
 
-Calculates comprehensive classification, probabilistic, and error metrics:
-- Accuracy, Precision, Recall, Specificity, F1 (Macro & Weighted)
-- ROC-AUC & PR-AUC (with robust fallbacks for edge-case class distributions)
-- Brier Score (Probability Calibration)
-- Confusion Matrix & Per-Class Performance
+EVALUATION STRATEGY
+--------------------
+Network intrusion detection datasets are typically imbalanced: benign traffic
+outweighs attacks, sometimes by 10:1 or more.  In this context accuracy alone
+is misleading — a model that always predicts "benign" can achieve 90%+ accuracy
+while detecting zero attacks.  We therefore use a multi-metric strategy:
+
+Primary metrics (always reported):
+  - f1_macro: Harmonic mean of precision and recall, averaged equally across
+    classes.  Unlike accuracy, it does not reward ignoring the minority class.
+  - precision_macro: Of all positive predictions, how many are correct?
+    High precision = few false alarms.
+  - recall_macro: Of all actual positives, how many were detected?
+    High recall = few missed attacks.
+
+Supplementary metrics (reported when probabilities are available):
+  - pr_auc (Precision-Recall AUC): More informative than ROC-AUC under
+    class imbalance because it focuses on the minority (attack) class.
+  - roc_auc: Area under the ROC curve; threshold-independent but can be
+    optimistic when the negative class dominates.
+  - brier_score: Measures probability calibration (lower = better).
+
+Operational metrics:
+  - false_positive_rate: Critical for IDS — high FPR causes alert fatigue.
+  - false_negative_rate: Critical for IDS — high FNR means missed attacks.
+  - class_distribution: Reports the actual class proportions so the analyst
+    can interpret metrics in context.
+
+Class imbalance approach:
+  The current pipeline uses stratified train/test splitting (preserving class
+  ratios) and does NOT apply SMOTE, class weighting, or resampling.  This
+  is a deliberate baseline: we want to measure how well the model learns from
+  the natural distribution, without augmentation that could mask generalization
+  problems.  Future work may add class_weight='balanced' or SMOTE as a
+  controlled experiment variable.
+
+Per-class metrics:
+  compute_detailed_report() returns sklearn's classification_report as a dict,
+  giving precision, recall, f1, and support for each class.  This is essential
+  because aggregate metrics can hide poor performance on specific attack types.
 """
 from __future__ import annotations
 
@@ -66,6 +101,29 @@ def compute_metrics(
     metrics["precision"] = metrics["precision_macro"]
     metrics["recall"] = metrics["recall_macro"]
     metrics["f1"] = metrics["f1_macro"]
+
+    # Class distribution (for imbalance analysis)
+    class_counts = {str(c): int(np.sum(y_true == c)) for c in classes}
+    total = len(y_true)
+    metrics["class_distribution"] = {
+        "counts": class_counts,
+        "proportions": {k: round(v / total, 4) for k, v in class_counts.items()},
+        "n_classes": int(n_classes),
+        "is_imbalanced": bool(n_classes == 2 and min(class_counts.values()) / total < 0.1),
+    }
+
+    # False Positive Rate (for binary classification)
+    if n_classes == 2:
+        tn = int(np.sum((y_true == 0) & (y_pred == 0)))
+        fp = int(np.sum((y_true == 0) & (y_pred == 1)))
+        fn = int(np.sum((y_true == 1) & (y_pred == 0)))
+        tp = int(np.sum((y_true == 1) & (y_pred == 1)))
+        metrics["false_positive_rate"] = round(fp / (fp + tn), 6) if (fp + tn) > 0 else None
+        metrics["false_negative_rate"] = round(fn / (fn + tp), 6) if (fn + tp) > 0 else None
+        metrics["true_positive"] = tp
+        metrics["true_negative"] = tn
+        metrics["false_positive"] = fp
+        metrics["false_negative"] = fn
 
     # Compute probabilistic metrics if probabilities are provided
     if y_prob is not None:

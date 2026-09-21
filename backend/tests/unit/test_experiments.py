@@ -14,6 +14,8 @@ def test_exp_a_execution(service):
     assert "out_of_distribution" in res["metrics"]
     assert "generalization_gap" in res["metrics"]
     assert 0.0 <= res["metrics"]["in_distribution"]["f1_score"] <= 1.0
+    # Verify synthetic data is clearly labeled (not claiming real UNSW/CICIDS)
+    assert "Synthetic" in res["title"]
 
 def test_exp_b_execution(service):
     res = service.run_exp_b({"noise_levels": [0.01, 0.05], "n_repetitions": 3, "random_state": 42})

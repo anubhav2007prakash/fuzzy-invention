@@ -47,12 +47,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Global exception handler ──────────────────────────────────────────────────
+# ── Global exception handlers ──────────────────────────────────────────────
 @app.exception_handler(SentinelCryptException)
 async def sentinelcrypt_exception_handler(request: Request, exc: SentinelCryptException):
     return JSONResponse(
         status_code=422,
-        content={"error": {"code": exc.code, "message": exc.message, "details": {}}},
+        content=exc.to_dict(),
+    )
+
+
+@app.exception_handler(ValueError)
+async def validation_error_handler(request: Request, exc: ValueError):
+    """Catch UUID validation errors and return consistent format."""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": str(exc),
+                "details": {},
+            }
+        },
     )
 
 # ── Routes ────────────────────────────────────────────────────────────────────

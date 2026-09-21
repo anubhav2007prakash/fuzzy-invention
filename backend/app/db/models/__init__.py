@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (
-    Boolean, DateTime, Float, ForeignKey, Integer,
+    Boolean, DateTime, Float, ForeignKey, Index, Integer,
     String, Text, UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -38,6 +38,10 @@ class Dataset(Base):
     validation_status: Mapped[str]           = mapped_column(String(50),  nullable=False, default="VALID")
     label_distribution: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string
     created_at:        Mapped[datetime]      = mapped_column(DateTime, default=_utcnow, nullable=False)
+
+    __table_args__ = (
+        Index("ix_datasets_file_hash", "file_hash", unique=True),
+    )
 
     features    = relationship("DatasetFeature", back_populates="dataset", cascade="all, delete-orphan")
     experiments = relationship("Experiment", back_populates="dataset")
@@ -73,6 +77,11 @@ class Experiment(Base):
     configuration_json: Mapped[str]          = mapped_column(Text, nullable=False, default="{}")
     status:             Mapped[str]          = mapped_column(String(50), default="pending", nullable=False)
     created_at:         Mapped[datetime]     = mapped_column(DateTime, default=_utcnow, nullable=False)
+
+    __table_args__ = (
+        Index("ix_experiments_dataset_id", "dataset_id"),
+        Index("ix_experiments_status", "status"),
+    )
 
     dataset   = relationship("Dataset", back_populates="experiments")
     models    = relationship("ModelRecord", back_populates="experiment")
@@ -173,6 +182,11 @@ class AuditRecord(Base):
     record_hash:     Mapped[str]     = mapped_column(String(64), nullable=False)
     created_at:      Mapped[datetime] = mapped_column(DateTime, default=_utcnow, nullable=False)
 
+    __table_args__ = (
+        UniqueConstraint("sequence_number"),
+        Index("ix_audit_records_sequence", "sequence_number"),
+    )
+
     prediction = relationship("Prediction", back_populates="audit_record")
 
 
@@ -191,6 +205,11 @@ class ModelEvaluation(Base):
     confusion_matrix_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     execution_time_s: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     created_at:       Mapped[datetime] = mapped_column(DateTime, default=_utcnow, nullable=False)
+
+    __table_args__ = (
+        Index("ix_model_evaluations_experiment_id", "experiment_id"),
+        Index("ix_model_evaluations_model_id", "model_id"),
+    )
 
     experiment = relationship("Experiment",  back_populates="evaluations")
     model      = relationship("ModelRecord", back_populates="evaluations")

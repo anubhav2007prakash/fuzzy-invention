@@ -1,6 +1,7 @@
 """Prediction endpoints for SentinelCrypt AI."""
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -9,8 +10,11 @@ from backend.app.core.exceptions import (
     ModelNotFoundError,
     PredictionFailedError,
     PredictionNotFoundError,
+    validate_uuid_format,
 )
 from backend.app.db.database import get_db
+
+logger = logging.getLogger(__name__)
 from backend.app.schemas.prediction import (
     BatchPredictionRequest,
     BatchPredictionResponse,
@@ -41,9 +45,10 @@ def create_prediction(
     except PredictionFailedError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        logger.exception("Prediction failed unexpectedly")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Inference execution failed: {str(e)}",
+            detail="Inference execution failed.",
         )
 
 
@@ -66,9 +71,10 @@ def create_batch_predictions(
     except PredictionFailedError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        logger.exception("Batch prediction failed unexpectedly")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Batch inference execution failed: {str(e)}",
+            detail="Batch inference execution failed.",
         )
 
 
@@ -98,6 +104,7 @@ def get_prediction(
     db: Session = Depends(get_db),
 ) -> PredictionResponse:
     """Fetch details of a specific prediction record."""
+    validate_uuid_format(prediction_id, "prediction")
     service = PredictionService(db)
     try:
         return service.get_prediction(prediction_id)

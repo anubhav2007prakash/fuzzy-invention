@@ -1,5 +1,36 @@
 """Structured application exceptions for SentinelCrypt AI."""
 
+import re
+
+# UUID format: 8-4-4-4-12 hex characters
+_UUID_PATTERN = re.compile(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    re.IGNORECASE,
+)
+
+
+def validate_uuid_format(resource_id: str, resource_type: str = "resource") -> str:
+    """Validate that a resource ID is a valid UUID format.
+
+    Args:
+        resource_id: The ID string to validate.
+        resource_type: Human-readable name for error messages.
+
+    Returns:
+        The validated resource_id.
+
+    Raises:
+        ValueError: If the ID is not a valid UUID.
+    """
+    if not resource_id or not isinstance(resource_id, str):
+        raise ValueError(f"Invalid {resource_type} ID: empty or not a string.")
+    if not _UUID_PATTERN.match(resource_id):
+        raise ValueError(
+            f"Invalid {resource_type} ID format: '{resource_id}'. "
+            "Expected a valid UUID (e.g., 550e8400-e29b-41d4-a716-446655440000)."
+        )
+    return resource_id
+
 
 class SentinelCryptException(Exception):
     """Base exception."""
@@ -7,6 +38,16 @@ class SentinelCryptException(Exception):
         super().__init__(message)
         self.message = message
         self.code = code
+
+    def to_dict(self) -> dict:
+        """Return a consistent error response dict."""
+        return {
+            "error": {
+                "code": self.code,
+                "message": self.message,
+                "details": {},
+            }
+        }
 
 
 # ── Dataset ──────────────────────────────────────────────────────────────────

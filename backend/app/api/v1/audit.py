@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from backend.app.core.exceptions import validate_uuid_format
 from backend.app.db.database import get_db
 from backend.app.schemas.audit import (
     AuditRecordResponse,
@@ -48,6 +49,7 @@ def get_record(
     db: Session = Depends(get_db),
 ) -> AuditRecordResponse:
     """Fetch an individual audit record and its canonical evidence payload."""
+    validate_uuid_format(record_id, "audit record")
     service = AuditService(db)
     record = service.get_audit_record(record_id)
     if not record:
@@ -68,6 +70,7 @@ def get_record_by_prediction(
     db: Session = Depends(get_db),
 ) -> AuditRecordResponse:
     """Retrieve the cryptographic audit record linked to a specific inference prediction."""
+    validate_uuid_format(prediction_id, "prediction")
     service = AuditService(db)
     record = service.get_audit_record_by_prediction(prediction_id)
     if not record:

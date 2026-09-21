@@ -22,5 +22,21 @@ Dataset → preprocessing → baselines → evaluation → XAI → perturbation 
 ## Expected Contribution
 A reproducible prototype and measurable evaluation framework. Novelty must be established through literature review and evidence, not assumed from technology combination.
 
+## Current Status (September 2026)
+
+### Implemented and Measured
+- Leakage-free ML preprocessing pipeline (fit on train only)
+- Logistic Regression and Random Forest classifiers with comprehensive metrics
+- SHAP-based local explanations with stability analysis
+- SHA-256 hash chain audit ledger with canonical JSON serialization
+- Tamper detection verified on synthetic chains (payload mutations, pointer modifications, record deletions)
+- EXP-A, EXP-B, EXP-C, EXP-D executed on synthetic data partitions
+
+### Planned / Future Work
+- Cross-dataset evaluation on real UNSW-NB15 and CICIDS2017 datasets
+- Feature mapping between different dataset schemas
+- Larger-scale reproducibility studies
+- Hardened deployment configuration
+
 ## Ethical Scope
 Defensive, local, authorized experimentation only.
