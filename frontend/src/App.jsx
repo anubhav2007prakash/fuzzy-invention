@@ -1,16 +1,35 @@
-import React from 'react'
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import MainLayout from './components/layout/MainLayout';
 
-function App() {
+// Pages
+import Dashboard from './pages/Dashboard';
+import Datasets from './pages/Datasets';
+import Models from './pages/Models';
+import Predictions from './pages/Predictions';
+import Explainability from './pages/Explainability';
+import AuditLedger from './pages/AuditLedger';
+import Experiments from './pages/Experiments';
+import Documentation from './pages/Documentation';
+import Settings from './pages/Settings';
+
+export default function App() {
   return (
-    <div className="app-container">
-      <header>
-        <h1>SentinelCrypt AI Dashboard</h1>
-      </header>
-      <main>
-        <p>Verifiable Machine Learning & Cryptographic Audit Ledger</p>
-      </main>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="datasets" element={<Datasets />} />
+          <Route path="models" element={<Models />} />
+          <Route path="predictions" element={<Predictions />} />
+          <Route path="explainability" element={<Explainability />} />
+          <Route path="audit" element={<AuditLedger />} />
+          <Route path="experiments" element={<Experiments />} />
+          <Route path="docs" element={<Documentation />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
-
-export default App
