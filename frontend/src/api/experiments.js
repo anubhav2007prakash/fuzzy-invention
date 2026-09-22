@@ -24,4 +24,21 @@ export const experimentsApi = {
       body: config,
     });
   },
+
+  /**
+   * Export portable evidence package for an experiment
+   */
+  exportEvidence: (expId, config = {}) => {
+    return fetchApi(`/experiments/${expId}/evidence`, {
+      method: 'POST',
+      body: config,
+    });
+  },
+
+  /**
+   * Get professor-mode presentation summary
+   */
+  presentationSummary: () => {
+    return fetchApi('/experiments/presentation-summary', { method: 'GET' });
+  },
 };

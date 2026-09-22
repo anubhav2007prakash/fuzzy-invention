@@ -29,6 +29,19 @@ def list_experiments(
 
 
 @router.get(
+    "/presentation-summary",
+    summary="Get professor-mode research presentation summary",
+    response_model=Dict[str, Any],
+)
+def get_presentation_summary(
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Aggregate the current research pipeline, latest results, limitations, and future work."""
+    service = ExperimentService(db)
+    return service.build_presentation_summary()
+
+
+@router.get(
     "/{exp_id}",
     summary="Get details and results of a specific experiment",
     response_model=Dict[str, Any],
@@ -96,3 +109,28 @@ def run_experiment(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Experiment '{exp_id}' failed during execution: {str(e)}",
         )
+
+
+@router.post(
+    "/{exp_id}/evidence",
+    summary="Export a portable research evidence package",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+)
+def export_experiment_evidence(
+    exp_id: str,
+    config: Optional[Dict[str, Any]] = None,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Export structured research evidence files for an experiment."""
+    service = ExperimentService(db)
+    try:
+        return service.export_evidence_package(exp_id, config=config)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Evidence export failed for experiment '{exp_id}': {str(e)}",
+        )
+

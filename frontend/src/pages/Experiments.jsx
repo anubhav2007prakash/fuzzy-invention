@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FlaskConical, Play, FileText, CheckCircle2, Award, Download, ArrowRight, ShieldCheck, Zap, RefreshCw, BarChart2, Check, AlertCircle } from 'lucide-react';
+import { FlaskConical, Play, Download, RefreshCw, BarChart2, Settings2, PackageCheck } from 'lucide-react';
 import StatusBadge from '../components/common/StatusBadge';
 import Alert from '../components/common/Alert';
-import Loader from '../components/common/Loader';
+import TrustProfileBars from '../components/research/TrustProfileBars';
+import ReproducibilityPanel from '../components/research/ReproducibilityPanel';
 import { experimentsApi } from '../api/experiments';
 
 const EXPERIMENTS_META = [
@@ -36,12 +37,74 @@ const EXPERIMENTS_META = [
   },
 ];
 
+const DEFAULT_CONFIGS = {
+  'EXP-A': { n_samples: 1200, random_state: 42 },
+  'EXP-B': { noise_levels: '0.01, 0.05, 0.10, 0.20', n_repetitions: 8, random_state: 42 },
+  'EXP-C': { n_blocks: 50, random_state: 42 },
+  'EXP-D': { n_samples: 1500, random_state: 42 },
+};
+
+function parsePositiveInteger(value, label) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) return `${label} must be a positive integer.`;
+  return null;
+}
+
+function parseInteger(value, label) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed)) return `${label} must be an integer.`;
+  return null;
+}
+
+function buildConfig(expId, form) {
+  const errors = [];
+  const config = {};
+
+  if (expId === 'EXP-A' || expId === 'EXP-D') {
+    const sampleError = parsePositiveInteger(form.n_samples, 'Sample count');
+    const seedError = parseInteger(form.random_state, 'Seed');
+    if (sampleError) errors.push(sampleError);
+    if (seedError) errors.push(seedError);
+    config.n_samples = Number.parseInt(form.n_samples, 10);
+    config.random_state = Number.parseInt(form.random_state, 10);
+  }
+
+  if (expId === 'EXP-B') {
+    const levels = String(form.noise_levels)
+      .split(',')
+      .map((value) => Number.parseFloat(value.trim()))
+      .filter((value) => !Number.isNaN(value));
+    if (!levels.length || levels.some((value) => value <= 0)) errors.push('Noise levels must be positive numbers separated by commas.');
+    const repetitionError = parsePositiveInteger(form.n_repetitions, 'Repetitions');
+    const seedError = parseInteger(form.random_state, 'Seed');
+    if (repetitionError) errors.push(repetitionError);
+    if (seedError) errors.push(seedError);
+    config.noise_levels = levels;
+    config.n_repetitions = Number.parseInt(form.n_repetitions, 10);
+    config.random_state = Number.parseInt(form.random_state, 10);
+  }
+
+  if (expId === 'EXP-C') {
+    const blockError = parsePositiveInteger(form.n_blocks, 'Ledger blocks');
+    const seedError = parseInteger(form.random_state, 'Seed');
+    if (blockError) errors.push(blockError);
+    if (seedError) errors.push(seedError);
+    config.n_blocks = Number.parseInt(form.n_blocks, 10);
+    config.random_state = Number.parseInt(form.random_state, 10);
+  }
+
+  return { config, errors };
+}
+
 export default function Experiments() {
   const [selectedExpId, setSelectedExpId] = useState('EXP-A');
   const [experimentsData, setExperimentsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState(null);
+  const [configForms, setConfigForms] = useState(DEFAULT_CONFIGS);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [evidenceExport, setEvidenceExport] = useState(null);
 
   const loadAllExperiments = async () => {
     setLoading(true);
@@ -67,19 +130,45 @@ export default function Experiments() {
   }, []);
 
   const handleRunExperiment = async (expId) => {
+    const { config, errors } = buildConfig(expId, configForms[expId]);
+    setValidationErrors(errors);
+    setEvidenceExport(null);
+    if (errors.length) return;
+
     setRunning(true);
     setError(null);
     try {
-      const result = await experimentsApi.run(expId);
-      setExperimentsData((prev) => ({
-        ...prev,
-        [expId]: result,
-      }));
+      const result = await experimentsApi.run(expId, config);
+      setExperimentsData((prev) => ({ ...prev, [expId]: result }));
     } catch (err) {
       setError(err.message || `Failed to run ${expId}.`);
     } finally {
       setRunning(false);
     }
+  };
+
+  const handleExportEvidence = async (expId) => {
+    const { config, errors } = buildConfig(expId, configForms[expId]);
+    setValidationErrors(errors);
+    if (errors.length) return;
+
+    setError(null);
+    try {
+      const exported = await experimentsApi.exportEvidence(expId, config);
+      setEvidenceExport(exported);
+    } catch (err) {
+      setError(err.message || `Failed to export evidence for ${expId}.`);
+    }
+  };
+
+  const updateConfig = (expId, key, value) => {
+    setConfigForms((prev) => ({
+      ...prev,
+      [expId]: {
+        ...prev[expId],
+        [key]: value,
+      },
+    }));
   };
 
   const selectedMeta = EXPERIMENTS_META.find((m) => m.id === selectedExpId) || EXPERIMENTS_META[0];
@@ -92,7 +181,7 @@ export default function Experiments() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-            Research Experiments & Benchmark Suite (EXP-A to EXP-D)
+            Research Lab
           </h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
             Deterministic scientific experiments evaluating generalization gap, explanation stability, ledger integrity, and runtime overhead.
@@ -183,10 +272,55 @@ export default function Experiments() {
               </div>
             </div>
 
+            {/* Experiment Configuration */}
+            <div className="card" style={{ background: 'var(--bg-surface)', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--text-primary)', fontWeight: 700 }}>
+                <Settings2 size={16} style={{ color: 'var(--cyan-neon)' }} />
+                Experiment Configuration
+              </div>
+
+              <div className="grid-2">
+                {(selectedExpId === 'EXP-A' || selectedExpId === 'EXP-D') && (
+                  <div className="form-group">
+                    <label className="form-label">Samples</label>
+                    <input className="form-input" type="number" min="1" value={configForms[selectedExpId].n_samples} onChange={(e) => updateConfig(selectedExpId, 'n_samples', e.target.value)} />
+                  </div>
+                )}
+                {selectedExpId === 'EXP-B' && (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">Noise Levels</label>
+                      <input className="form-input" value={configForms[selectedExpId].noise_levels} onChange={(e) => updateConfig(selectedExpId, 'noise_levels', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Repetitions</label>
+                      <input className="form-input" type="number" min="1" value={configForms[selectedExpId].n_repetitions} onChange={(e) => updateConfig(selectedExpId, 'n_repetitions', e.target.value)} />
+                    </div>
+                  </>
+                )}
+                {selectedExpId === 'EXP-C' && (
+                  <div className="form-group">
+                    <label className="form-label">Ledger Blocks</label>
+                    <input className="form-input" type="number" min="1" value={configForms[selectedExpId].n_blocks} onChange={(e) => updateConfig(selectedExpId, 'n_blocks', e.target.value)} />
+                  </div>
+                )}
+                <div className="form-group">
+                  <label className="form-label">Seed</label>
+                  <input className="form-input" type="number" value={configForms[selectedExpId].random_state} onChange={(e) => updateConfig(selectedExpId, 'random_state', e.target.value)} />
+                </div>
+              </div>
+
+              {validationErrors.length > 0 && (
+                <Alert type="warning" title="Invalid configuration">
+                  {validationErrors.join(' ')}
+                </Alert>
+              )}
+            </div>
+
             {/* Results Details according to Experiment Type */}
             {isCompleted ? (
-              <div>
-                <div style={{ fontWeight: '600', fontSize: '0.85rem', marginBottom: '10px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ fontWeight: '600', fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <BarChart2 size={16} style={{ color: 'var(--cyan-neon)' }} />
                   Quantitative Results (Persisted to results/)
                 </div>
@@ -331,6 +465,42 @@ export default function Experiments() {
                     </div>
                   </div>
                 )}
+
+                {/* Model Trust Profile */}
+                {selectedResult?.trust_profile && (
+                  <TrustProfileBars dimensions={selectedResult.trust_profile} />
+                )}
+
+                {/* Reproducibility Manifest */}
+                {selectedResult?.run_manifest && (
+                  <ReproducibilityPanel result={selectedResult} />
+                )}
+
+                {/* Evidence Package */}
+                {selectedResult?.run_manifest && (
+                  <div className="card" style={{ background: 'var(--bg-surface)' }}>
+                    <div className="card-header">
+                      <div>
+                        <div className="card-title">
+                          <PackageCheck size={16} style={{ color: 'var(--cyan-neon)' }} />
+                          Evidence Package
+                        </div>
+                        <div className="card-subtitle">Export structured evidence for independent inspection</div>
+                      </div>
+                      <button className="btn btn-secondary" onClick={() => handleExportEvidence(selectedExpId)}>
+                        <Download size={14} />
+                        Export Evidence
+                      </button>
+                    </div>
+                    {evidenceExport && evidenceExport.experiment_id === selectedExpId && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.8rem' }}>
+                        <div>Package Path: <span className="hash-pill">{evidenceExport.package_path}</span></div>
+                        <div>Package Hash: <span className="hash-pill">{evidenceExport.package_hash}</span></div>
+                        <div>Files: {evidenceExport.files.join(', ')}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--bg-input)', borderRadius: 'var(--radius-sm)' }}>
@@ -353,7 +523,7 @@ export default function Experiments() {
             )}
 
             <Alert type="info">
-              All experiment benchmarks use deterministic global seeds (random_state=42) and export structured JSON evidence for research publication.
+              Research Lab v1 uses deterministic experiment configurations, canonical SHA-256 result hashes, and reproducibility manifests. Current benchmark datasets are synthetic unless a manifest states otherwise.
             </Alert>
           </div>
         </div>

@@ -4,8 +4,10 @@ from __future__ import annotations
 import json
 import os
 import platform
+import subprocess
 import sys
 import time
+from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
@@ -33,7 +35,7 @@ from backend.app.cryptography.hash_chain import (
     calculate_payload_hash,
     calculate_record_hash,
 )
-from backend.app.cryptography.hashing import sha256_hash
+from backend.app.cryptography.hashing import hash_file, sha256_hash
 from backend.app.cryptography.verifier import verify_ledger
 from backend.app.ml.models.random_forest import RandomForestDetector
 from backend.app.xai.shap_explainer import SHAPExplainer
@@ -41,6 +43,26 @@ from backend.app.xai.stability import ExplanationStabilityAnalyzer
 
 RESULTS_DIR = Path(settings.RESULTS_DIR)
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+EXPERIMENT_RESULT_FILES = {
+    "EXP-A": "exp_a_cross_dataset.json",
+    "EXP-B": "exp_b_xai_stability.json",
+    "EXP-C": "exp_c_ledger_integrity.json",
+    "EXP-D": "exp_d_model_comparison.json",
+}
+
+RESEARCH_ENVELOPE_KEYS = {
+    "run_manifest",
+    "result_hash",
+    "configuration_hash",
+    "trust_profile",
+    "evidence_package",
+}
+
+SYNTHETIC_DATA_DISCLAIMER = (
+    "Current benchmark results use deterministic synthetic network-flow data with controlled properties. "
+    "They are not real UNSW-NB15 or CICIDS2017 measurements."
+)
 
 
 def _reproducibility_metadata() -> Dict[str, Any]:
@@ -137,6 +159,322 @@ class ExperimentService:
 
         df = pd.concat([df_benign, df_attack], ignore_index=True)
         return df.sample(frac=1.0, random_state=random_state).reset_index(drop=True)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Research Envelope: Validation, Canonical Hashes, Manifest, Trust Profile
+    # ─────────────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _positive_int(value: Any, field_name: str) -> int:
+        if isinstance(value, bool):
+            raise ValueError(f"{field_name} must be a positive integer.")
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"{field_name} must be a positive integer.") from None
+        if parsed <= 0:
+            raise ValueError(f"{field_name} must be a positive integer.")
+        return parsed
+
+    @staticmethod
+    def _integer(value: Any, field_name: str) -> int:
+        if isinstance(value, bool):
+            raise ValueError(f"{field_name} must be an integer.")
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"{field_name} must be an integer.") from None
+
+    @staticmethod
+    def _positive_float_list(value: Any, field_name: str) -> List[float]:
+        if not isinstance(value, list) or not value:
+            raise ValueError(f"{field_name} must be a non-empty list of positive numbers.")
+        parsed: List[float] = []
+        for item in value:
+            try:
+                number = float(item)
+            except (TypeError, ValueError):
+                raise ValueError(f"{field_name} must contain only positive numbers.") from None
+            if not np.isfinite(number) or number <= 0:
+                raise ValueError(f"{field_name} must contain only positive numbers.")
+            parsed.append(number)
+        return parsed
+
+    def validate_experiment_config(self, exp_id: str, config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Validate and normalize experiment configuration, raising ValueError naming bad fields."""
+        normalized_id = exp_id.upper().strip()
+        raw = config or {}
+
+        if normalized_id == "EXP-A":
+            return {
+                "n_samples": self._positive_int(raw.get("n_samples", 1200), "n_samples"),
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+            }
+        if normalized_id == "EXP-B":
+            return {
+                "noise_levels": self._positive_float_list(raw.get("noise_levels", [0.01, 0.05, 0.10, 0.20]), "noise_levels"),
+                "n_repetitions": self._positive_int(raw.get("n_repetitions", 8), "n_repetitions"),
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+            }
+        if normalized_id == "EXP-C":
+            return {
+                "n_blocks": self._positive_int(raw.get("n_blocks", 50), "n_blocks"),
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+            }
+        if normalized_id == "EXP-D":
+            return {
+                "n_samples": self._positive_int(raw.get("n_samples", 1500), "n_samples"),
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+            }
+        raise ValueError(f"Unknown experiment ID '{exp_id}'. Must be EXP-A, EXP-B, EXP-C, or EXP-D.")
+
+    @staticmethod
+    def _strip_research_envelope(result: Dict[str, Any]) -> Dict[str, Any]:
+        return {key: deepcopy(value) for key, value in result.items() if key not in RESEARCH_ENVELOPE_KEYS}
+
+    def calculate_result_hash(self, result: Dict[str, Any]) -> str:
+        """SHA-256 over the canonical JSON of the result with envelope keys stripped."""
+        return sha256_hash(canonicalize(self._strip_research_envelope(result)))
+
+    def calculate_configuration_hash(self, exp_id: str, config: Dict[str, Any]) -> str:
+        """SHA-256 over the canonical JSON of the normalized experiment id + configuration."""
+        payload = {"experiment_id": exp_id.upper().strip(), "configuration": config}
+        return sha256_hash(canonicalize(payload))
+
+    def get_git_metadata(self) -> Dict[str, Any]:
+        repo_root = Path(__file__).resolve().parents[3]
+
+        def run_git(args: List[str]) -> str:
+            return subprocess.check_output(
+                ["git", *args],
+                cwd=repo_root,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=2,
+            ).strip()
+
+        try:
+            status = run_git(["status", "--short"])
+            return {
+                "commit": run_git(["rev-parse", "--short", "HEAD"]),
+                "branch": run_git(["rev-parse", "--abbrev-ref", "HEAD"]),
+                "dirty_worktree": bool(status),
+            }
+        except Exception:
+            return {"commit": "unknown", "branch": "unknown", "dirty_worktree": None}
+
+    def build_run_manifest(self, result: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+        exp_id = result["experiment_id"]
+        reproducibility = result.get("reproducibility") or _reproducibility_metadata()
+        return {
+            "experiment_id": exp_id,
+            "title": result.get("title"),
+            "status": result.get("status"),
+            "configuration": config,
+            "random_seed": config.get("random_state"),
+            "result_artifact": EXPERIMENT_RESULT_FILES.get(exp_id),
+            "dataset_scope": "synthetic",
+            "dataset_disclaimer": SYNTHETIC_DATA_DISCLAIMER,
+            "git": self.get_git_metadata(),
+            "environment": {
+                "python_version": reproducibility.get("python_version"),
+                "platform": reproducibility.get("platform"),
+                "numpy_version": reproducibility.get("numpy_version"),
+                "pandas_version": reproducibility.get("pandas_version"),
+                "sklearn_version": reproducibility.get("sklearn_version"),
+                "shap_version": reproducibility.get("shap_version"),
+            },
+            "generated_at": reproducibility.get("timestamp_utc") or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+
+    @staticmethod
+    def _dimension(label: str, value: Optional[float], status: str, measurement: str, explanation: str) -> Dict[str, Any]:
+        return {
+            "label": label,
+            "value": None if value is None else round(float(value), 4),
+            "status": status,
+            "measurement": measurement,
+            "explanation": explanation,
+        }
+
+    def build_trust_profile(self, result: Dict[str, Any]) -> List[Dict[str, Any]]:
+        metrics = result.get("metrics") or {}
+        comparison = result.get("comparison") or {}
+
+        detection_value: Optional[float] = None
+        detection_measurement = "No detection metric available for this experiment."
+        if "in_distribution" in metrics:
+            detection_value = metrics["in_distribution"].get("f1_score")
+            detection_measurement = "In-distribution F1 score from EXP-A."
+        elif "random_forest" in comparison:
+            detection_value = comparison["random_forest"].get("f1_score")
+            detection_measurement = "Random Forest F1 score from EXP-D."
+        elif "overall_mean_stability" in metrics:
+            detection_measurement = "EXP-B measures explanation stability, not detection quality."
+        elif "clean_chain_valid" in metrics:
+            detection_measurement = "EXP-C measures ledger integrity, not detection quality."
+
+        stability_value = metrics.get("overall_mean_stability")
+        evidence_value = None
+        if "clean_chain_valid" in metrics:
+            rate_text = str(metrics.get("tamper_detection_rate", "0%")).replace("%", "")
+            try:
+                evidence_value = float(rate_text) / 100.0 if metrics.get("clean_chain_valid") else 0.0
+            except ValueError:
+                evidence_value = 0.0
+
+        manifest_ready = bool(result.get("reproducibility")) and bool(result.get("parameters") or comparison)
+        reproducibility_value = 1.0 if manifest_ready else 0.75
+
+        return [
+            self._dimension("Detection", detection_value, "measured" if detection_value is not None else "not_applicable", detection_measurement, "Detection trust is derived only from available F1 metrics."),
+            self._dimension("Explanation Stability", stability_value, "measured" if stability_value is not None else "not_applicable", "Mean cosine SHAP stability from EXP-B when available.", "Explanation stability is measured only for the XAI perturbation experiment."),
+            self._dimension("Evidence Integrity", evidence_value, "measured" if evidence_value is not None else "not_applicable", "Clean-chain verification and tamper detection rate from EXP-C when available.", "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee."),
+            self._dimension("Reproducibility", reproducibility_value, "measured", "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.", "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment."),
+            self._dimension("Data Quality", None, "not_evaluated", "No real dataset health report is attached to this synthetic benchmark.", "No real dataset health report exists for this run, so data quality is not scored."),
+        ]
+
+    def enrich_research_result(self, result: Dict[str, Any], config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Attach the research envelope: run manifest, canonical hashes, trust profile, evidence state."""
+        enriched = deepcopy(result)
+        exp_id = enriched["experiment_id"]
+        normalized_config = self.validate_experiment_config(exp_id, config or enriched.get("parameters") or {})
+        enriched["run_manifest"] = self.build_run_manifest(enriched, normalized_config)
+        enriched["result_hash"] = self.calculate_result_hash(enriched)
+        enriched["configuration_hash"] = self.calculate_configuration_hash(exp_id, normalized_config)
+        enriched["trust_profile"] = self.build_trust_profile(enriched)
+        enriched["evidence_package"] = {"status": "not_exported"}
+        return enriched
+
+    def export_evidence_package(self, exp_id: str, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        normalized_id = exp_id.upper().strip()
+        if normalized_id not in EXPERIMENT_RESULT_FILES:
+            raise ValueError(f"Unknown experiment ID '{exp_id}'. Must be EXP-A, EXP-B, EXP-C, or EXP-D.")
+
+        result = self.run_experiment_by_id(normalized_id, config=config) if config else self.get_experiment_by_id(normalized_id)
+        if result is None:
+            result = self.run_experiment_by_id(normalized_id, config=config)
+
+        package_dir = RESULTS_DIR / "evidence" / normalized_id
+        package_dir.mkdir(parents=True, exist_ok=True)
+
+        metrics_payload = result.get("metrics") or result.get("comparison") or {}
+        verification_report = {
+            "experiment_id": normalized_id,
+            "status": result.get("status"),
+            "result_hash": result.get("result_hash"),
+            "configuration_hash": result.get("configuration_hash"),
+            "trust_profile": result.get("trust_profile", []),
+            "ledger_scope": "synthetic_controlled_demo" if normalized_id == "EXP-C" else "not_applicable",
+            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+
+        files_to_write = {
+            "experiment.json": result,
+            "metrics.json": metrics_payload,
+            "reproducibility-manifest.json": result.get("run_manifest", {}),
+            "verification-report.json": verification_report,
+        }
+
+        for filename, payload in files_to_write.items():
+            with open(package_dir / filename, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2, sort_keys=True)
+
+        readme = (
+            f"# SentinelCrypt Evidence Package: {normalized_id}\n\n"
+            f"Generated: {verification_report['generated_at']}\n\n"
+            "This package contains deterministic research evidence exported from SentinelCrypt AI.\n"
+            "Current benchmark experiments use synthetic data unless a manifest states otherwise.\n"
+        )
+        with open(package_dir / "README.md", "w", encoding="utf-8") as f:
+            f.write(readme)
+
+        file_hashes = {}
+        for file_path in sorted(package_dir.iterdir(), key=lambda p: p.name):
+            if file_path.is_file():
+                file_hashes[file_path.name] = hash_file(str(file_path))
+
+        package_hash = sha256_hash(canonicalize({"files": file_hashes}))
+        files = sorted(file_hashes.keys())
+
+        response = {
+            "experiment_id": normalized_id,
+            "package_path": str(package_dir.as_posix()),
+            "files": files,
+            "file_hashes": file_hashes,
+            "package_hash": package_hash,
+            "generated_at": verification_report["generated_at"],
+        }
+        result["evidence_package"] = {
+            "status": "exported",
+            "package_path": response["package_path"],
+            "package_hash": package_hash,
+            "generated_at": response["generated_at"],
+        }
+        return response
+
+    @staticmethod
+    def _experiment_highlight(exp: Dict[str, Any]) -> Dict[str, Any]:
+        exp_id = exp.get("experiment_id")
+        if exp.get("status") != "COMPLETED":
+            return {"experiment_id": exp_id, "status": exp.get("status"), "highlight": "Ready to run"}
+
+        metrics = exp.get("metrics") or {}
+        comparison = exp.get("comparison") or {}
+
+        if exp_id == "EXP-A":
+            in_f1 = metrics.get("in_distribution", {}).get("f1_score")
+            out_f1 = metrics.get("out_of_distribution", {}).get("f1_score")
+            return {"experiment_id": exp_id, "status": "COMPLETED", "highlight": f"In-distribution F1 {in_f1}; out-of-distribution F1 {out_f1}"}
+        if exp_id == "EXP-B":
+            stability = metrics.get("overall_mean_stability")
+            return {"experiment_id": exp_id, "status": "COMPLETED", "highlight": f"Mean SHAP stability {stability}"}
+        if exp_id == "EXP-C":
+            detection = metrics.get("tamper_detection_rate")
+            return {"experiment_id": exp_id, "status": "COMPLETED", "highlight": f"Tamper detection rate {detection}"}
+        if exp_id == "EXP-D":
+            rf_f1 = comparison.get("random_forest", {}).get("f1_score")
+            lr_f1 = comparison.get("logistic_regression", {}).get("f1_score")
+            return {"experiment_id": exp_id, "status": "COMPLETED", "highlight": f"Random Forest F1 {rf_f1}; Logistic Regression F1 {lr_f1}"}
+        return {"experiment_id": exp_id, "status": exp.get("status"), "highlight": "No highlight available"}
+
+    def build_presentation_summary(self) -> Dict[str, Any]:
+        experiments = self.list_experiments()
+        completed = [exp for exp in experiments if exp.get("status") == "COMPLETED"]
+
+        return {
+            "research_question": "How does explanation reliability and cryptographic evidence verification affect the trustworthiness of machine-learning-based network intrusion detection?",
+            "methodology": [
+                "Validate or generate deterministic network-flow data.",
+                "Train leakage-conscious baseline and ensemble ML models.",
+                "Evaluate detection metrics and runtime trade-offs.",
+                "Generate SHAP explanations and perturbation-based stability measurements.",
+                "Canonicalize evidence and anchor records in a SHA-256 forward-linked audit ledger.",
+                "Export reproducibility metadata, hashes, and evidence packages for inspection.",
+            ],
+            "datasets": [
+                {"name": "Synthetic SentinelCrypt Flow Benchmark", "status": "implemented", "scope": "Current EXP-A through EXP-D benchmark data."},
+                {"name": "UNSW-NB15", "status": "planned", "scope": "Real dataset support requires feature mapping and checksum validation."},
+                {"name": "CICIDS2017", "status": "planned", "scope": "Real cross-dataset evaluation requires compatible feature representation."},
+            ],
+            "models": ["Logistic Regression", "Random Forest"],
+            "xai_method": "SHAP explanations with perturbation-based stability analysis.",
+            "cryptographic_evidence": "RFC 8785-style canonical JSON, SHA-256 payload hashes, and a forward-linked tamper-evident audit ledger.",
+            "experiments": [self._experiment_highlight(exp) for exp in experiments],
+            "completed_experiments": len(completed),
+            "total_experiments": len(experiments),
+            "limitations": [
+                "Current experiments use synthetic data.",
+                "The audit ledger is tamper-evident, not tamper-proof.",
+                "SentinelCrypt AI is a research prototype, not a production IDS.",
+            ],
+            "future_work": [
+                "Real UNSW-NB15 to CICIDS2017 feature mapping.",
+                "Statistical significance testing for repeated runs.",
+                "Out-of-distribution and unknown attack research modes.",
+                "Digitally signed research result publication packages.",
+            ],
+        }
 
     # ─────────────────────────────────────────────────────────────────────────
     # EXP-A: Cross-Dataset Generalization
@@ -242,6 +580,8 @@ class ExperimentService:
             },
         }
 
+        result = self.enrich_research_result(result, cfg)
+
         out_file = RESULTS_DIR / "exp_a_cross_dataset.json"
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2)
@@ -316,6 +656,8 @@ class ExperimentService:
                 ),
             },
         }
+
+        result = self.enrich_research_result(result, cfg)
 
         out_file = RESULTS_DIR / "exp_b_xai_stability.json"
         with open(out_file, "w", encoding="utf-8") as f:
@@ -450,6 +792,8 @@ class ExperimentService:
             },
         }
 
+        result = self.enrich_research_result(result, cfg)
+
         out_file = RESULTS_DIR / "exp_c_ledger_integrity.json"
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2)
@@ -548,6 +892,8 @@ class ExperimentService:
             },
         }
 
+        result = self.enrich_research_result(result, cfg)
+
         out_file = RESULTS_DIR / "exp_d_model_comparison.json"
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2)
@@ -561,15 +907,15 @@ class ExperimentService:
     def list_experiments(self) -> List[Dict[str, Any]]:
         """List summary status of all 4 research experiments."""
         exp_meta = [
-            {"id": "EXP-A", "title": "Cross-Dataset Generalization Gap", "file": "exp_a_cross_dataset.json"},
-            {"id": "EXP-B", "title": "XAI Attribution Stability under Perturbation", "file": "exp_b_xai_stability.json"},
-            {"id": "EXP-C", "title": "Cryptographic Audit Integrity & Tamper Attacks", "file": "exp_c_ledger_integrity.json"},
-            {"id": "EXP-D", "title": "Model Architecture & Runtime Overhead Comparison", "file": "exp_d_model_comparison.json"},
+            {"id": "EXP-A", "title": "Cross-Dataset Generalization Gap"},
+            {"id": "EXP-B", "title": "XAI Attribution Stability under Perturbation"},
+            {"id": "EXP-C", "title": "Cryptographic Audit Integrity & Tamper Attacks"},
+            {"id": "EXP-D", "title": "Model Architecture & Runtime Overhead Comparison"},
         ]
 
         results = []
         for meta in exp_meta:
-            file_path = RESULTS_DIR / meta["file"]
+            file_path = RESULTS_DIR / EXPERIMENT_RESULT_FILES[meta["id"]]
             if file_path.exists():
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
@@ -589,13 +935,7 @@ class ExperimentService:
     def get_experiment_by_id(self, exp_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve stored experiment details or run if not yet executed."""
         normalized_id = exp_id.upper().strip()
-        filename_map = {
-            "EXP-A": "exp_a_cross_dataset.json",
-            "EXP-B": "exp_b_xai_stability.json",
-            "EXP-C": "exp_c_ledger_integrity.json",
-            "EXP-D": "exp_d_model_comparison.json",
-        }
-        filename = filename_map.get(normalized_id)
+        filename = EXPERIMENT_RESULT_FILES.get(normalized_id)
         if not filename:
             return None
 
@@ -603,7 +943,10 @@ class ExperimentService:
         if file_path.exists():
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                if "run_manifest" not in data:
+                    return self.enrich_research_result(data, data.get("parameters") or {})
+                return data
             except Exception:
                 pass
 

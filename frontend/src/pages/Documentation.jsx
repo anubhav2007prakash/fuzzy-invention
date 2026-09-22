@@ -108,11 +108,12 @@ export default function Documentation() {
             <span style={{ color: 'var(--status-benign)', fontWeight: '700' }}>✓ Phase 5:</span> Explainable AI (XAI) Engine & Stability Test
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--cyan-neon)', fontWeight: '700' }}>▶ Phase 6:</span> React 18 + Vite Frontend Interface
+            <span style={{ color: 'var(--status-benign)', fontWeight: '700' }}>✓ Phase 6:</span> React 18 + Vite Frontend Interface (Qronos Design System)
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-            <span>○ Phase 7:</span> Research Experiments (EXP-A to EXP-D) & Results
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--status-benign)', fontWeight: '700' }}>✓ Phase 7:</span> Research Experiments (EXP-A to EXP-D), Evidence Export & Professor Mode
           </div>
+
         </div>
       </div>
     </div>

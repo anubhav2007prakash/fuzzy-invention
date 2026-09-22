@@ -10,6 +10,7 @@ import Predictions from './pages/Predictions';
 import Explainability from './pages/Explainability';
 import AuditLedger from './pages/AuditLedger';
 import Experiments from './pages/Experiments';
+import ProfessorMode from './pages/ProfessorMode';
 import Documentation from './pages/Documentation';
 import Settings from './pages/Settings';
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="explainability" element={<Explainability />} />
           <Route path="audit" element={<AuditLedger />} />
           <Route path="experiments" element={<Experiments />} />
+          <Route path="professor-mode" element={<ProfessorMode />} />
           <Route path="docs" element={<Documentation />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -37,3 +37,24 @@ def test_run_experiment_endpoint(client):
 def test_invalid_experiment_id(client):
     response = client.get("/api/v1/experiments/EXP-UNKNOWN")
     assert response.status_code == 400
+
+def test_export_evidence_endpoint(client):
+    response = client.post("/api/v1/experiments/EXP-C/evidence", json={"n_blocks": 12, "random_state": 42})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["experiment_id"] == "EXP-C"
+    assert len(data["package_hash"]) == 64
+    assert "experiment.json" in data["files"]
+    assert "reproducibility-manifest.json" in data["files"]
+
+def test_presentation_summary_endpoint_is_not_treated_as_experiment_id(client):
+    response = client.get("/api/v1/experiments/presentation-summary")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "research_question" in data
+    assert "experiments" in data
+    assert len(data["experiments"]) == 4
+
+
