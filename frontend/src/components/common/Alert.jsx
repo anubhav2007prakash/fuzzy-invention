@@ -16,9 +16,9 @@ export default function Alert({ type = 'info', title, children }) {
       <div style={{ flexShrink: 0, marginTop: '2px' }}>
         <Icon size={18} />
       </div>
-      <div>
-        {title && <div style={{ fontWeight: '600', marginBottom: '2px' }}>{title}</div>}
-        <div>{children}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {title && <div style={{ fontWeight: '700', marginBottom: '3px', fontSize: '0.86rem' }}>{title}</div>}
+        <div style={{ fontSize: '0.82rem', lineHeight: '1.5' }}>{children}</div>
       </div>
     </div>
   );

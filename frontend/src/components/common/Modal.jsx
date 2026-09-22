@@ -18,17 +18,40 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
     <div className="modal-backdrop" onClick={onClose}>
       <div
         className="modal-dialog"
-        style={{ maxWidth }}
+        style={{ maxWidth, position: 'relative' }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Top gradient highlight */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '2px',
+            background: 'linear-gradient(90deg, transparent, var(--cyan-neon), transparent)',
+          }}
+        />
+
         <div className="modal-header">
-          <h3 style={{ fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-primary)' }}>{title}</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
+            {title}
+          </h3>
           <button
             onClick={onClose}
             className="btn btn-secondary"
-            style={{ padding: '4px', borderRadius: '50%', width: '28px', height: '28px' }}
+            style={{
+              padding: '6px',
+              borderRadius: '50%',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-label="Close modal"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 

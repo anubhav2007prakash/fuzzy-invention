@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Upload, RefreshCw, CheckCircle2, AlertCircle, FileText, Hash, Table as TableIcon } from 'lucide-react';
+import { Database, Upload, RefreshCw, CheckCircle2, AlertCircle, FileText, Hash, Table as TableIcon, Eye } from 'lucide-react';
 import StatusBadge from '../components/common/StatusBadge';
 import Loader from '../components/common/Loader';
 import Alert from '../components/common/Alert';
+import Modal from '../components/common/Modal';
 import DatasetUploadModal from '../components/forms/DatasetUploadModal';
 import { datasetsApi } from '../api/datasets';
 
@@ -12,6 +13,9 @@ export default function Datasets() {
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
 
   const loadDatasets = async () => {
     setLoading(true);
@@ -41,6 +45,27 @@ export default function Datasets() {
     } catch (err) {
       setSelectedDataset(dataset);
     }
+  };
+
+  const handlePreview = async () => {
+    if (!selectedDataset) return;
+    setPreview(null);
+    setPreviewError(null);
+    setPreviewLoading(true);
+    try {
+      const data = await datasetsApi.preview(selectedDataset.id, 10);
+      setPreview(data);
+    } catch (err) {
+      setPreviewError(err.message || 'Failed to load dataset preview.');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreview(null);
+    setPreviewError(null);
+    setPreviewLoading(false);
   };
 
   if (loading) {
@@ -87,7 +112,7 @@ export default function Datasets() {
           </button>
         </div>
       ) : (
-        <div className="grid-2" style={{ gridTemplateColumns: '1.1fr 1fr', alignItems: 'start' }}>
+        <div className="grid-2" style={{ alignItems: 'start' }}>
           {/* Dataset Table */}
           <div className="card">
             <div className="card-header">
@@ -150,7 +175,17 @@ export default function Datasets() {
                   </div>
                   <div className="card-subtitle">Dataset Metadata & Cryptographic Provenance</div>
                 </div>
-                <StatusBadge status="valid" label="Schema Verified" />
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={handlePreview}
+                    disabled={previewLoading}
+                  >
+                    <Eye size={13} /> {previewLoading ? 'Loading...' : 'Preview Rows'}
+                  </button>
+                  <StatusBadge status="valid" label="Schema Verified" />
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -203,22 +238,26 @@ export default function Datasets() {
                     }}
                   >
                     {(selectedDataset.features || []).length > 0 ? (
-                      selectedDataset.features.map((feat, idx) => (
-                        <span
-                          key={feat.name || idx}
-                          style={{
-                            background: 'var(--bg-surface)',
-                            border: '1px solid var(--border-medium)',
-                            borderRadius: '4px',
-                            padding: '3px 8px',
-                            fontSize: '0.72rem',
-                            fontFamily: 'monospace',
-                            color: feat.name === selectedDataset.target_column ? 'var(--status-attack)' : 'var(--text-secondary)',
-                          }}
-                        >
-                          {feat.name || feat} {feat.type ? `(${feat.type})` : ''}
-                        </span>
-                      ))
+                      selectedDataset.features.map((feat, idx) => {
+                        const featName = feat.feature_name || feat.name || `column_${idx}`;
+                        const featType = feat.data_type || feat.type;
+                        return (
+                          <span
+                            key={featName}
+                            style={{
+                              background: 'var(--bg-surface)',
+                              border: '1px solid var(--border-medium)',
+                              borderRadius: '4px',
+                              padding: '3px 8px',
+                              fontSize: '0.72rem',
+                              fontFamily: 'monospace',
+                              color: featName === selectedDataset.target_column ? 'var(--status-attack)' : 'var(--text-secondary)',
+                            }}
+                          >
+                            {featName} {featType ? `(${featType})` : ''}
+                          </span>
+                        );
+                      })
                     ) : (
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', padding: '6px' }}>
                         Schema columns auto-mapped to numerical & categorical preprocessing pipelines.
@@ -231,6 +270,57 @@ export default function Datasets() {
           )}
         </div>
       )}
+
+      {/* Dataset Preview Modal */}
+      <Modal
+        isOpen={Boolean(previewLoading || preview || previewError)}
+        onClose={closePreview}
+        title={`Data Preview — ${selectedDataset?.name || ''}`}
+        maxWidth="900px"
+        footer={
+          <button className="btn btn-secondary" onClick={closePreview}>
+            Close
+          </button>
+        }
+      >
+        {previewLoading ? (
+          <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            Reading first rows from the registered CSV...
+          </div>
+        ) : previewError ? (
+          <Alert type="danger" title="Preview Failed">
+            {previewError}
+          </Alert>
+        ) : preview ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="table-container" style={{ maxHeight: '340px', overflowY: 'auto' }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    {(preview.preview_rows?.length ? Object.keys(preview.preview_rows[0]) : []).map((col) => (
+                      <th key={col}>{col}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(preview.preview_rows || []).map((row, idx) => (
+                    <tr key={idx}>
+                      {Object.keys(preview.preview_rows[0] || {}).map((col) => (
+                        <td key={col} style={{ fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                          {row[col] !== null && row[col] !== undefined ? String(row[col]) : '—'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Showing {preview.preview_rows?.length || 0} of {preview.total_rows?.toLocaleString()} rows · {preview.total_features} features
+            </div>
+          </div>
+        ) : null}
+      </Modal>
 
       <DatasetUploadModal
         isOpen={isUploadOpen}

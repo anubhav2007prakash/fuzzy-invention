@@ -6,6 +6,8 @@ Verifies:
 3. Downgrade then re-upgrade produces a consistent schema.
 """
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -249,6 +251,70 @@ class TestMigrationDowngradeReupgrade(unittest.TestCase):
 
         self.assertEqual(len(versions), 1)
         self.assertEqual(versions[0], "0001_initial")
+
+
+class TestMigrationUrlOwnership(unittest.TestCase):
+    """settings.DATABASE_URL is the single owner of the migration target.
+
+    alembic.ini used to hardcode ``sqlalchemy.url = sqlite:///sentinelcert.db``,
+    which silently beat any DATABASE_URL override (e.g. Docker's
+    ``sqlite:////app/data/...`` volume): alembic reported success against the
+    wrong file and the app database ended up with zero tables.
+    """
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.fresh_db = os.path.join(self.tmpdir, "fresh_env.db")
+        self.repo_db = os.path.join(os.getcwd(), "sentinelcert.db")
+        self.repo_mtime_before = (
+            os.path.getmtime(self.repo_db) if os.path.exists(self.repo_db) else None
+        )
+
+    def tearDown(self):
+        for f in os.listdir(self.tmpdir):
+            os.remove(os.path.join(self.tmpdir, f))
+        os.rmdir(self.tmpdir)
+
+    def test_alembic_ini_does_not_hardcode_sqlalchemy_url(self):
+        """alembic.ini must not own the DB URL — env.py fills it from settings."""
+        cfg = Config("alembic.ini")
+        self.assertFalse(
+            cfg.get_main_option("sqlalchemy.url"),
+            "alembic.ini must not define sqlalchemy.url; env.py sets it from "
+            "settings.DATABASE_URL so overrides are never ignored",
+        )
+
+    def test_upgrade_follows_database_url_env_override(self):
+        """A DATABASE_URL override must receive the schema (the Docker failure mode)."""
+        script = (
+            "from alembic.config import Config\n"
+            "from alembic import command\n"
+            "command.upgrade(Config('alembic.ini'), 'head')\n"
+        )
+        env = dict(os.environ, DATABASE_URL=f"sqlite:///{self.fresh_db}")
+        proc = subprocess.run(
+            [sys.executable, "-c", script],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, msg=proc.stderr)
+
+        self.assertTrue(os.path.exists(self.fresh_db), "override DB was never created")
+
+        engine = create_engine(f"sqlite:///{self.fresh_db}")
+        with engine.connect() as conn:
+            version = conn.execute(
+                text("SELECT version_num FROM alembic_version")
+            ).scalar()
+        self.assertEqual(version, "0001_initial")
+        tables = set(inspect(engine).get_table_names()) - {"alembic_version"}
+        self.assertEqual(tables, _get_expected_tables())
+        engine.dispose()
+
+        # The override must not fall through to the default database.
+        if self.repo_mtime_before is not None:
+            self.assertEqual(os.path.getmtime(self.repo_db), self.repo_mtime_before)
 
 
 if __name__ == "__main__":

@@ -1,34 +1,51 @@
 import React from 'react';
 
 export default function StatCard({ title, value, subtitle, icon: Icon, color = 'cyan' }) {
-  const colorMap = {
-    cyan: { bg: 'rgba(0, 242, 254, 0.12)', color: 'var(--cyan-neon)', border: 'rgba(0, 242, 254, 0.25)' },
-    blue: { bg: 'rgba(59, 130, 246, 0.12)', color: 'var(--blue-primary)', border: 'rgba(59, 130, 246, 0.25)' },
-    green: { bg: 'var(--status-benign-bg)', color: 'var(--status-benign)', border: 'rgba(16, 185, 129, 0.25)' },
-    red: { bg: 'var(--status-attack-bg)', color: 'var(--status-attack)', border: 'rgba(239, 68, 68, 0.25)' },
-    amber: { bg: 'var(--status-warning-bg)', color: 'var(--status-warning)', border: 'rgba(245, 158, 11, 0.25)' },
-    purple: { bg: 'var(--purple-glow)', color: 'var(--purple-accent)', border: 'rgba(168, 85, 247, 0.25)' },
+  const accentColors = {
+    cyan: '#00f2fe',
+    blue: '#3b82f6',
+    purple: '#a855f7',
+    green: '#10b981',
+    red: '#ef4444',
+    amber: '#f59e0b',
   };
 
-  const scheme = colorMap[color] || colorMap.cyan;
+  const accent = accentColors[color] || '#ffffff';
 
   return (
     <div className="stat-card">
-      <div>
+      {/* Top subtle glow rail */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+          opacity: 0.8,
+        }}
+      />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div className="stat-label">{title}</div>
         <div className="stat-value">{value ?? '—'}</div>
-        {subtitle && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{subtitle}</div>}
+        {subtitle && (
+          <div className="stat-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: accent }} />
+            <span>{subtitle}</span>
+          </div>
+        )}
       </div>
+
       {Icon && (
         <div
           className="stat-icon-wrapper"
           style={{
-            background: scheme.bg,
-            color: scheme.color,
-            border: `1px solid ${scheme.border}`,
+            borderColor: 'rgba(255, 255, 255, 0.12)',
           }}
         >
-          <Icon size={22} />
+          <Icon size={18} style={{ color: accent }} />
         </div>
       )}
     </div>

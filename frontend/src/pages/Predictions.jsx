@@ -156,6 +156,7 @@ export default function Predictions() {
   // Form State
   const [featureJson, setFeatureJson] = useState(JSON.stringify(PRESETS.benign_web.features, null, 2));
   const [activePreset, setActivePreset] = useState('benign_web');
+  const [threshold, setThreshold] = useState('');
   const [latestResult, setLatestResult] = useState(null);
   const [error, setError] = useState(null);
 
@@ -205,6 +206,10 @@ export default function Predictions() {
       return;
     }
 
+    const useThreshold = threshold.trim() !== '';
+    const thresholdValue = useThreshold ? Number(threshold) : null;
+    // Range enforcement lives in the input's native min/max constraints.
+
     setPredicting(true);
     setError(null);
     setLatestResult(null);
@@ -214,6 +219,7 @@ export default function Predictions() {
         model_id: selectedModelId,
         features: parsedFeatures,
         include_explanation: false,
+        ...(useThreshold ? { confidence_threshold: thresholdValue } : {}),
       };
       const result = await predictionsApi.predict(payload);
       setLatestResult(result);
@@ -229,7 +235,15 @@ export default function Predictions() {
     return <Loader text="Loading inference workspace..." size="lg" />;
   }
 
-  const isLatestAttack = latestResult?.predicted_class === 1 || latestResult?.predicted_class === 'ATTACK';
+  const isUncertain = latestResult?.is_uncertain || latestResult?.predicted_class === 'UNCERTAIN';
+  const isLatestAttack =
+    !isUncertain &&
+    (latestResult?.predicted_class === 1 || latestResult?.predicted_class === 'ATTACK');
+  const resultConfidence =
+    latestResult?.confidence ??
+    (latestResult?.probabilities && Object.keys(latestResult.probabilities).length > 0
+      ? Math.max(...Object.values(latestResult.probabilities))
+      : undefined);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -266,7 +280,7 @@ export default function Predictions() {
           </button>
         </div>
       ) : (
-        <div className="grid-2" style={{ gridTemplateColumns: '1.2fr 1fr', alignItems: 'start' }}>
+        <div className="grid-2" style={{ alignItems: 'start' }}>
           {/* Inference Control Form */}
           <div className="card">
             <div className="card-header">
@@ -323,6 +337,25 @@ export default function Predictions() {
                 />
               </div>
 
+              {/* Confidence Threshold */}
+              <div className="form-group">
+                <label className="form-label">Confidence Threshold (optional)</label>
+                <input
+                  type="number"
+                  className="form-input font-mono"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  placeholder="e.g. 0.7"
+                  value={threshold}
+                  onChange={(e) => setThreshold(e.target.value)}
+                  style={{ fontSize: '0.85rem' }}
+                />
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  If the model's max probability falls below this value, the result is reported as UNCERTAIN. Leave empty to accept every classification.
+                </span>
+              </div>
+
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -341,16 +374,36 @@ export default function Predictions() {
               <div
                 className="card"
                 style={{
-                  borderColor: isLatestAttack ? 'rgba(239, 68, 68, 0.4)' : 'rgba(16, 185, 129, 0.4)',
-                  background: isLatestAttack ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+                  borderColor: isUncertain
+                    ? 'rgba(245, 158, 11, 0.4)'
+                    : isLatestAttack
+                      ? 'rgba(239, 68, 68, 0.4)'
+                      : 'rgba(16, 185, 129, 0.4)',
+                  background: isUncertain
+                    ? 'rgba(245, 158, 11, 0.05)'
+                    : isLatestAttack
+                      ? 'rgba(239, 68, 68, 0.05)'
+                      : 'rgba(16, 185, 129, 0.05)',
                 }}
               >
                 <div className="card-header">
                   <div className="card-title">
-                    <Activity size={18} style={{ color: isLatestAttack ? 'var(--status-attack)' : 'var(--status-benign)' }} />
+                    <Activity
+                      size={18}
+                      style={{
+                        color: isUncertain
+                          ? 'var(--status-warning)'
+                          : isLatestAttack
+                            ? 'var(--status-attack)'
+                            : 'var(--status-benign)',
+                      }}
+                    />
                     Inference Output
                   </div>
-                  <StatusBadge status={isLatestAttack ? 'ATTACK' : 'BENIGN'} size="lg" />
+                  <StatusBadge
+                    status={isUncertain ? 'UNCERTAIN' : isLatestAttack ? 'ATTACK' : 'BENIGN'}
+                    size="lg"
+                  />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -361,23 +414,40 @@ export default function Predictions() {
                         style={{
                           fontSize: '1.4rem',
                           fontWeight: '800',
-                          color: isLatestAttack ? 'var(--status-attack)' : 'var(--status-benign)',
+                          color: isUncertain
+                            ? 'var(--status-warning)'
+                            : isLatestAttack
+                              ? 'var(--status-attack)'
+                              : 'var(--status-benign)',
                         }}
                       >
-                        {isLatestAttack ? 'ATTACK' : 'BENIGN'}
+                        {isUncertain ? 'UNCERTAIN' : isLatestAttack ? 'ATTACK' : 'BENIGN'}
                       </div>
                     </div>
 
                     <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Confidence Score</div>
                       <div style={{ fontSize: '1.4rem', fontWeight: '800', fontFamily: 'monospace', color: 'var(--cyan-neon)' }}>
-                        {latestResult.probability !== undefined ? `${(latestResult.probability * 100).toFixed(2)}%` : '—'}
+                        {resultConfidence !== undefined ? `${(resultConfidence * 100).toFixed(2)}%` : '—'}
                       </div>
+                      {resultConfidence !== undefined && (
+                        <div style={{ width: '100%', height: '4px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              width: `${Math.min(100, Math.max(0, resultConfidence * 100))}%`,
+                              height: '100%',
+                              background: isLatestAttack ? 'linear-gradient(90deg, #ef4444, #f59e0b)' : 'linear-gradient(90deg, #10b981, #00f2fe)',
+                              borderRadius: '2px',
+                              transition: 'width 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    <div>Prediction ID: <span className="hash-pill">{latestResult.id}</span></div>
+                    <div>Prediction ID: <span className="hash-pill">{latestResult.prediction_id || latestResult.id}</span></div>
                     <div style={{ marginTop: '4px' }}>Model: <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{latestResult.model_name || selectedModelId}</span></div>
                   </div>
 
@@ -386,7 +456,7 @@ export default function Predictions() {
                     <button
                       className="btn btn-secondary"
                       style={{ flex: 1, fontSize: '0.78rem' }}
-                      onClick={() => navigate(`/explainability?prediction_id=${latestResult.id}`)}
+                      onClick={() => navigate(`/explainability?prediction_id=${latestResult.prediction_id || latestResult.id}`)}
                     >
                       <Sparkles size={14} style={{ color: 'var(--purple-accent)' }} />
                       Explain with SHAP
@@ -394,7 +464,7 @@ export default function Predictions() {
                     <button
                       className="btn btn-secondary"
                       style={{ flex: 1, fontSize: '0.78rem' }}
-                      onClick={() => navigate(`/audit?prediction_id=${latestResult.id}`)}
+                      onClick={() => navigate(`/audit?prediction_id=${latestResult.prediction_id || latestResult.id}`)}
                     >
                       <ShieldCheck size={14} style={{ color: 'var(--cyan-neon)' }} />
                       View Audit Block
@@ -435,14 +505,15 @@ export default function Predictions() {
                   </thead>
                   <tbody>
                     {predictions.slice(0, 10).map((p) => {
+                      const isUnc = p.predicted_class === 'UNCERTAIN';
                       const isAtk = p.predicted_class === 1 || p.predicted_class === 'ATTACK';
                       return (
-                        <tr key={p.id}>
+                        <tr key={p.prediction_id || p.id}>
                           <td style={{ fontSize: '0.72rem' }}>
                             {p.created_at ? new Date(p.created_at).toLocaleTimeString() : 'Recent'}
                           </td>
                           <td>
-                            <StatusBadge status={isAtk ? 'ATTACK' : 'BENIGN'} />
+                            <StatusBadge status={isUnc ? 'UNCERTAIN' : isAtk ? 'ATTACK' : 'BENIGN'} />
                           </td>
                           <td style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
                             {p.probability !== undefined ? `${(p.probability * 100).toFixed(1)}%` : '—'}
@@ -451,7 +522,7 @@ export default function Predictions() {
                             <button
                               className="btn btn-secondary"
                               style={{ padding: '3px 8px', fontSize: '0.68rem' }}
-                              onClick={() => navigate(`/explainability?prediction_id=${p.id}`)}
+                              onClick={() => navigate(`/explainability?prediction_id=${p.prediction_id || p.id}`)}
                             >
                               SHAP
                             </button>

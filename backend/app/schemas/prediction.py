@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 class PredictionRequest(BaseModel):
     model_id: str
     features: Dict[str, Union[float, int, str]]
+    confidence_threshold: Optional[float] = Field(None, ge=0.0, le=1.0,
+        description="Minimum probability threshold. Below this, predicted_class is 'UNCERTAIN'.")
 
 class BatchPredictionRequest(BaseModel):
     model_id: str
@@ -18,6 +20,8 @@ class PredictionResponse(BaseModel):
     predicted_class: str
     prediction_label: int
     probabilities: Optional[Dict[str, float]] = None
+    confidence: Optional[float] = None
+    is_uncertain: bool = False
     input_hash: str
     latency_ms: float
     created_at: datetime

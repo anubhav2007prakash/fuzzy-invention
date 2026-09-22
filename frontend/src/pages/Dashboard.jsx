@@ -8,9 +8,10 @@ import {
   Upload,
   Play,
   ArrowRight,
-  ShieldAlert,
+  Shield,
+  Layers,
   Sparkles,
-  RefreshCw,
+  Zap,
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import StatusBadge from '../components/common/StatusBadge';
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
 
+  const [activePipelineTab, setActivePipelineTab] = useState('guardrails');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isTrainOpen, setIsTrainOpen] = useState(false);
 
@@ -79,26 +81,134 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <Loader text="Loading cybersecurity telemetry & ledger status..." size="lg" />;
+    return <Loader text="Synchronizing autonomous runtime state..." size="lg" />;
   }
 
   const isChainValid = auditStatus?.is_valid !== false;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Stat Grid */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+      {/* Qronos Hero Operational Banner */}
+      <div
+        className="card"
+        style={{
+          padding: '28px',
+          background: 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05) 0%, transparent 65%), linear-gradient(#0a0a0e, #07070a)',
+          borderColor: 'rgba(255, 255, 255, 0.12)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span className="badge badge-info">STATEFUL RUNTIME</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>SHA-256 FORWARD LINKED</span>
+            </div>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: '800', letterSpacing: '-0.4px', color: '#ffffff', marginBottom: '6px' }}>
+              Cryptographic Guardrails for Autonomous Network Defense
+            </h2>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: '1.5' }}>
+              Coordinate traffic ingestion, real-time ML inference pipelines, and immutable cryptographic evidence blocks across every governed network flow.
+            </p>
+          </div>
+
+          {/* Qronos Star CTA Button */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button className="qronos-star-button" onClick={handleVerifyLedger} disabled={isVerifying}>
+              <ShieldCheck size={14} className={isVerifying ? 'spinner' : ''} />
+              <span>{isVerifying ? 'Verifying Hashes...' : 'Verify Entire Ledger »'}</span>
+            </button>
+            <Link to="/predictions" className="btn btn-secondary">
+              <Play size={13} /> Predict Flow
+            </Link>
+          </div>
+        </div>
+
+        {/* Qronos Pipeline Preview Tabs */}
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+          <div className="qronos-pipeline-tabs">
+            <button
+              className={`qronos-pipeline-tab ${activePipelineTab === 'guardrails' ? 'active' : ''}`}
+              onClick={() => setActivePipelineTab('guardrails')}
+            >
+              <ShieldCheck size={13} /> Cryptographic Guardrails
+            </button>
+            <button
+              className={`qronos-pipeline-tab ${activePipelineTab === 'models' ? 'active' : ''}`}
+              onClick={() => setActivePipelineTab('models')}
+            >
+              <BrainCircuit size={13} /> Model Registry
+            </button>
+            <button
+              className={`qronos-pipeline-tab ${activePipelineTab === 'datasets' ? 'active' : ''}`}
+              onClick={() => setActivePipelineTab('datasets')}
+            >
+              <Database size={13} /> Flow Ingestion
+            </button>
+            <button
+              className={`qronos-pipeline-tab ${activePipelineTab === 'xai' ? 'active' : ''}`}
+              onClick={() => setActivePipelineTab('xai')}
+            >
+              <Sparkles size={13} /> SHAP Attribution
+            </button>
+          </div>
+
+          {/* Tab Previews */}
+          {activePipelineTab === 'guardrails' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <div>Forward-Linkage Status: <strong style={{ color: isChainValid ? 'var(--status-benign)' : 'var(--status-attack)' }}>{isChainValid ? '100% Mathematically Anchored (0 Tampering)' : 'Chain Mutation Flagged'}</strong></div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn-secondary" style={{ fontSize: '0.74rem', padding: '5px 10px' }} onClick={() => setIsUploadOpen(true)}>
+                  <Upload size={12} /> Ingest Dataset
+                </button>
+                <button className="btn btn-secondary" style={{ fontSize: '0.74rem', padding: '5px 10px' }} onClick={() => setIsTrainOpen(true)}>
+                  <BrainCircuit size={12} /> Train Model
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activePipelineTab === 'models' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <div>Active Baselines: <strong style={{ color: '#ffffff' }}>{models.length} Trained Classifiers (Random Forest & Logistic Regression)</strong></div>
+              <Link to="/models" className="btn btn-secondary" style={{ fontSize: '0.74rem', padding: '5px 10px' }}>
+                Open Model Lab →
+              </Link>
+            </div>
+          )}
+
+          {activePipelineTab === 'datasets' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <div>Registered Telemetry: <strong style={{ color: '#ffffff' }}>{datasets.length} Traffic Benchmarks Ingested</strong></div>
+              <button className="btn btn-secondary" style={{ fontSize: '0.74rem', padding: '5px 10px' }} onClick={() => setIsUploadOpen(true)}>
+                <Upload size={12} /> Ingest CSV →
+              </button>
+            </div>
+          )}
+
+          {activePipelineTab === 'xai' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <div>Explainability Engine: <strong style={{ color: 'var(--purple-accent)' }}>Local TreeSHAP & LinearSHAP Attribution</strong></div>
+              <Link to="/explainability" className="btn btn-secondary" style={{ fontSize: '0.74rem', padding: '5px 10px' }}>
+                Open Waterfall View →
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Top Stat Grid (Qronos KPI Cards) */}
       <div className="grid-4">
         <StatCard
           title="Registered Datasets"
           value={datasets.length}
-          subtitle="Validated traffic datasets"
+          subtitle="Validated traffic captures"
           icon={Database}
           color="cyan"
         />
         <StatCard
-          title="Trained Models"
+          title="Active Model Baselines"
           value={models.length}
-          subtitle="LR & Random Forest"
+          subtitle="Trained classifiers"
           icon={BrainCircuit}
           color="blue"
         />
@@ -112,39 +222,10 @@ export default function Dashboard() {
         <StatCard
           title="Audit Ledger Blocks"
           value={auditStatus?.total_records ?? auditRecords.length}
-          subtitle={isChainValid ? 'Chain Intact (SHA-256)' : 'Tampering Detected'}
+          subtitle={isChainValid ? 'SHA-256 Forward Linked' : 'Tampering Detected'}
           icon={ShieldCheck}
           color={isChainValid ? 'green' : 'red'}
         />
-      </div>
-
-      {/* Quick Action Shortcuts */}
-      <div className="card" style={{ background: 'linear-gradient(90deg, rgba(0, 242, 254, 0.05), rgba(59, 130, 246, 0.05))' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--text-primary)' }}>
-              SentinelCrypt Operational Controls
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Quickly ingest datasets, trigger model evaluations, run inferences, or verify cryptographic proof.
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button className="btn btn-secondary" onClick={() => setIsUploadOpen(true)}>
-              <Upload size={16} /> Ingest Dataset
-            </button>
-            <button className="btn btn-secondary" onClick={() => setIsTrainOpen(true)}>
-              <BrainCircuit size={16} /> Train Model
-            </button>
-            <Link to="/predictions" className="btn btn-primary">
-              <Play size={16} /> Predict Flow
-            </Link>
-            <button className="btn btn-verify" onClick={handleVerifyLedger} disabled={isVerifying}>
-              <ShieldCheck size={16} className={isVerifying ? 'spinner' : ''} />
-              {isVerifying ? 'Verifying Hashes...' : 'Verify Entire Ledger'}
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Verification Result Banner */}
@@ -170,15 +251,15 @@ export default function Dashboard() {
         <div className="card-header">
           <div>
             <div className="card-title">
-              <ShieldCheck size={18} style={{ color: 'var(--cyan-neon)' }} />
+              <ShieldCheck size={16} style={{ color: 'var(--cyan-neon)' }} />
               Live Cryptographic Audit Ledger
             </div>
             <div className="card-subtitle">
               SHA-256 forward-linked evidence anchoring every network flow prediction
             </div>
           </div>
-          <Link to="/audit" className="btn btn-secondary" style={{ fontSize: '0.78rem', padding: '6px 12px' }}>
-            View Full Ledger <ArrowRight size={14} />
+          <Link to="/audit" className="btn btn-secondary" style={{ fontSize: '0.74rem', padding: '5px 10px' }}>
+            View Full Ledger <ArrowRight size={13} />
           </Link>
         </div>
 
@@ -192,12 +273,12 @@ export default function Dashboard() {
           <div className="card-header">
             <div>
               <div className="card-title">
-                <Activity size={18} style={{ color: 'var(--blue-primary)' }} />
+                <Activity size={16} style={{ color: 'var(--blue-primary)' }} />
                 Recent Inferences
               </div>
               <div className="card-subtitle">Latest classified network flow traffic</div>
             </div>
-            <Link to="/predictions" className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '4px 10px' }}>
+            <Link to="/predictions" className="btn btn-secondary" style={{ fontSize: '0.72rem', padding: '4px 9px' }}>
               Workspace
             </Link>
           </div>
@@ -214,7 +295,7 @@ export default function Dashboard() {
                     <th>Time</th>
                     <th>Classification</th>
                     <th>Confidence</th>
-                    <th>Audit Proof</th>
+                    <th>Proof</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -222,17 +303,17 @@ export default function Dashboard() {
                     const isAttack = p.predicted_class === 1 || p.predicted_class === 'ATTACK';
                     return (
                       <tr key={p.id}>
-                        <td style={{ fontSize: '0.75rem' }}>
+                        <td style={{ fontSize: '0.74rem' }}>
                           {p.created_at ? new Date(p.created_at).toLocaleTimeString() : 'Recent'}
                         </td>
                         <td>
                           <StatusBadge status={isAttack ? 'ATTACK' : 'BENIGN'} />
                         </td>
-                        <td style={{ fontWeight: '600', fontFamily: 'monospace' }}>
+                        <td style={{ fontWeight: '600', fontFamily: 'monospace', color: '#ffffff' }}>
                           {p.probability !== undefined ? `${(p.probability * 100).toFixed(1)}%` : '—'}
                         </td>
                         <td>
-                          <Link to="/audit" style={{ color: 'var(--cyan-neon)', textDecoration: 'none', fontSize: '0.75rem' }}>
+                          <Link to="/audit" style={{ color: 'var(--cyan-neon)', textDecoration: 'none', fontSize: '0.72rem' }}>
                             View Proof →
                           </Link>
                         </td>
@@ -250,12 +331,12 @@ export default function Dashboard() {
           <div className="card-header">
             <div>
               <div className="card-title">
-                <BrainCircuit size={18} style={{ color: 'var(--purple-accent)' }} />
+                <BrainCircuit size={16} style={{ color: 'var(--purple-accent)' }} />
                 Registered Model Baselines
               </div>
               <div className="card-subtitle">Active intrusion detection algorithms</div>
             </div>
-            <Link to="/models" className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '4px 10px' }}>
+            <Link to="/models" className="btn btn-secondary" style={{ fontSize: '0.72rem', padding: '4px 9px' }}>
               Model Lab
             </Link>
           </div>
@@ -278,7 +359,7 @@ export default function Dashboard() {
                 <tbody>
                   {models.slice(0, 5).map((m) => (
                     <tr key={m.id}>
-                      <td style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{m.name}</td>
+                      <td style={{ fontWeight: '600', color: '#ffffff' }}>{m.name}</td>
                       <td>
                         <StatusBadge status={m.model_type} />
                       </td>

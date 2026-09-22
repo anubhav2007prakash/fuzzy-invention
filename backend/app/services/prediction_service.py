@@ -98,6 +98,16 @@ class PredictionService:
         else:
             predicted_class = str(pred_label)
 
+        # 5b. Confidence thresholding
+        confidence: Optional[float] = None
+        is_uncertain = False
+        if probabilities and req.confidence_threshold is not None:
+            max_prob = max(probabilities.values())
+            confidence = float(round(max_prob, 6))
+            if max_prob < req.confidence_threshold:
+                predicted_class = "UNCERTAIN"
+                is_uncertain = True
+
         # 6. Generate UUID & timestamp for prediction and evidence
         prediction_id = str(uuid.uuid4())
         created_at_dt = datetime.now(timezone.utc)
@@ -143,6 +153,8 @@ class PredictionService:
             predicted_class=db_prediction.predicted_class,
             prediction_label=pred_label,
             probabilities=probabilities,
+            confidence=confidence,
+            is_uncertain=is_uncertain,
             input_hash=db_prediction.input_hash,
             latency_ms=db_prediction.latency_ms,
             created_at=db_prediction.created_at,

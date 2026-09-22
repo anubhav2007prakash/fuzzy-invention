@@ -117,3 +117,49 @@ def verify_ledger_chain(
     end_seq = req.end_sequence if not req.verify_entire_chain else None
 
     return service.verify_ledger_chain(start_sequence=start_seq, end_sequence=end_seq)
+
+
+@router.get(
+    "/export",
+    summary="Export audit ledger records as JSON",
+)
+def export_records(
+    format: str = Query("json", description="Export format: json or csv"),
+    start_sequence: int = Query(1, ge=1, description="Start sequence number"),
+    end_sequence: Optional[int] = Query(None, ge=1, description="End sequence number (None = all)"),
+    db: Session = Depends(get_db),
+):
+    """Export audit records as downloadable JSON or CSV."""
+    from fastapi.responses import StreamingResponse
+    import csv
+    import io
+    import json
+
+    service = AuditService(db)
+    records = service.list_audit_records(skip=start_sequence - 1, limit=10000)
+
+    # Filter by end_sequence if specified
+    if end_sequence is not None:
+        records = [r for r in records if r.sequence_number <= end_sequence]
+
+    if format == "csv":
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["sequence_number", "prediction_id", "record_hash",
+                         "previous_hash", "created_at"])
+        for r in records:
+            writer.writerow([r.sequence_number, r.prediction_id, r.record_hash,
+                             r.previous_hash, r.created_at])
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=audit_ledger.csv"},
+        )
+    else:
+        data = [r.model_dump() for r in records]
+        return StreamingResponse(
+            iter([json.dumps(data, indent=2, default=str)]),
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=audit_ledger.json"},
+        )

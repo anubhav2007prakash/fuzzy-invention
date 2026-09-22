@@ -2,7 +2,21 @@
  * SentinelCrypt AI API Client
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+/**
+ * API base URL — single source for fetchApi and Settings.
+ *
+ * VITE_API_URL may be an origin (`http://backend:8000`) or a full base
+ * (`http://backend:8000/api/v1`); the `/api/v1` prefix is appended when
+ * missing so configuration can never silently drop it.
+ */
+function resolveBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL;
+  if (!raw) return '/api/v1';
+  const trimmed = raw.replace(/\/+$/, '');
+  return trimmed.endsWith('/api/v1') ? trimmed : `${trimmed}/api/v1`;
+}
+
+export const BASE_URL = resolveBaseUrl();
 
 export class ApiError extends Error {
   constructor(message, status, data) {
@@ -61,8 +75,21 @@ export async function fetchApi(endpoint, options = {}) {
     }
 
     if (!response.ok) {
-      const errorMessage = data?.error?.message || data?.detail || `HTTP Error ${response.status}: ${response.statusText}`;
-      throw new ApiError(errorMessage, response.status, data);
+      // ApiError.message must always be a string: FastAPI error envelopes put
+      // structured objects under `detail` (e.g. {detail: {error: {...}}}), and
+      // an object rendered inside Alert blanks the page.
+      const detail = data?.detail;
+      const detailMessage =
+        typeof detail === 'string'
+          ? detail
+          : detail && typeof detail === 'object'
+            ? detail?.error?.message || JSON.stringify(detail)
+            : null;
+      const errorMessage =
+        data?.error?.message ||
+        detailMessage ||
+        `HTTP Error ${response.status}: ${response.statusText}`;
+      throw new ApiError(String(errorMessage), response.status, data);
     }
 
     return data;

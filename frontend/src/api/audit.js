@@ -38,4 +38,14 @@ export const auditApi = {
       body: payload,
     });
   },
+
+  /**
+   * Export ledger records as JSON or CSV (returns file contents as text)
+   */
+  exportLedger: (format = 'json', params = {}) => {
+    return fetchApi('/audit/export', {
+      method: 'GET',
+      params: { format, ...params },
+    });
+  },
 };

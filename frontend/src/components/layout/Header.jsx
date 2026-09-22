@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { healthApi } from '../../api/health';
-import { ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw, Search, ChevronRight } from 'lucide-react';
 
-export default function Header({ pageTitle }) {
+export default function Header({ pageTitle, pageSection = 'Workspace' }) {
   const [health, setHealth] = useState({ status: 'checking', service: 'SentinelCrypt AI' });
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -28,31 +28,37 @@ export default function Header({ pageTitle }) {
 
   return (
     <header className="top-header">
-      <div className="header-left">
-        <h1 className="page-title">{pageTitle || 'Dashboard'}</h1>
+      {/* Qronos Breadcrumb Navigation */}
+      <div className="header-breadcrumbs">
+        <span className="breadcrumb-root">SentinelCrypt</span>
+        <ChevronRight size={12} className="breadcrumb-separator" />
+        <span className="breadcrumb-root">{pageSection}</span>
+        <ChevronRight size={12} className="breadcrumb-separator" />
+        <span className="breadcrumb-current">{pageTitle}</span>
       </div>
 
       <div className="header-right">
+        {/* Qronos Signature Star Button */}
         <button
-          className="btn btn-secondary"
+          className="qronos-star-button"
           onClick={checkHealth}
           disabled={isRefreshing}
-          style={{ padding: '6px 12px', fontSize: '0.78rem' }}
-          title="Refresh backend status"
+          title="Trigger cryptographic health check"
         >
-          <RefreshCw size={14} className={isRefreshing ? 'spinner' : ''} />
-          <span>Sync Status</span>
+          <RefreshCw size={12} className={isRefreshing ? 'spinner' : ''} />
+          <span>{isRefreshing ? 'Syncing...' : 'Sync Telemetry »'}</span>
         </button>
 
+        {/* API Health Pill */}
         <div className={`health-pill ${!isHealthy ? 'badge-attack' : ''}`}>
           <div
             className="health-pulse"
             style={{
               background: isHealthy ? 'var(--status-benign)' : 'var(--status-attack)',
-              boxShadow: `0 0 8px ${isHealthy ? 'var(--status-benign)' : 'var(--status-attack)'}`,
+              boxShadow: `0 0 10px ${isHealthy ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'}`,
             }}
           />
-          <span>API: {isHealthy ? 'ONLINE' : 'DISCONNECTED'}</span>
+          <span>API: {isHealthy ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
       </div>
     </header>

@@ -145,8 +145,9 @@ export default function Models() {
                         onClick={() => handleSelectModel(m)}
                         style={{
                           cursor: 'pointer',
-                          background: isSelected ? 'rgba(168, 85, 247, 0.08)' : undefined,
-                          borderColor: isSelected ? 'rgba(168, 85, 247, 0.3)' : undefined,
+                          background: isSelected ? 'rgba(168, 85, 247, 0.1)' : undefined,
+                          borderLeft: isSelected ? '3px solid var(--purple-accent)' : '3px solid transparent',
+                          transition: 'all 0.15s ease',
                         }}
                       >
                         <td style={{ fontWeight: isSelected ? '700' : '500', color: isSelected ? 'var(--purple-accent)' : 'var(--text-primary)' }}>

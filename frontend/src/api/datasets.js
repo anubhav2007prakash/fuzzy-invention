@@ -24,4 +24,14 @@ export const datasetsApi = {
       body: formData,
     });
   },
+
+  /**
+   * Preview first N rows + column statistics
+   */
+  preview: (datasetId, nRows = 10) => {
+    return fetchApi(`/datasets/${datasetId}/preview`, {
+      method: 'GET',
+      params: { n_rows: nRows },
+    });
+  },
 };

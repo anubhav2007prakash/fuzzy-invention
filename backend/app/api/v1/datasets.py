@@ -1,13 +1,16 @@
 """Dataset API endpoints — /api/v1/datasets."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
+import pandas as pd
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
 from backend.app.core.exceptions import InvalidDatasetError, UnsupportedFormatError, DatasetNotFoundError
+from backend.app.core.file_security import validate_filename
 from backend.app.db.database import get_db
 from backend.app.schemas.dataset import DatasetListResponse, DatasetResponse, ValidationSummary
 from backend.app.services.dataset_service import DatasetService
@@ -113,3 +116,61 @@ def get_dataset(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=_error_response(exc.code, exc.message))
     return DatasetResponse.model_validate(dataset)
+
+
+# ── GET /datasets/{dataset_id}/preview  ──────────────────────────────────────
+
+@router.get(
+    "/{dataset_id}/preview",
+    summary="Preview dataset: first 5 rows + column statistics",
+)
+def preview_dataset(
+    dataset_id: str,
+    n_rows: int = Query(5, ge=1, le=20, description="Number of rows to preview"),
+    db: Session = Depends(get_db),
+):
+    """Return the first N rows and basic column statistics for a registered dataset."""
+    svc = DatasetService(db)
+    try:
+        dataset = svc.get_by_id(dataset_id)
+    except DatasetNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=_error_response(exc.code, exc.message))
+
+    csv_path = Path(settings.DATA_RAW_DIR) / dataset.file_name
+    if not csv_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=_error_response("FILE_NOT_FOUND", "Raw dataset file not found on disk."),
+        )
+
+    try:
+        df = pd.read_csv(csv_path, nrows=n_rows)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=_error_response("READ_ERROR", f"Could not read dataset: {e}"),
+        )
+
+    # Build column statistics from the preview
+    stats = {}
+    for col in df.columns:
+        col_stat: dict = {"dtype": str(df[col].dtype), "non_null": int(df[col].count())}
+        if pd.api.types.is_numeric_dtype(df[col]):
+            col_stat["mean"] = round(float(df[col].mean()), 4)
+            col_stat["std"] = round(float(df[col].std()), 4)
+            col_stat["min"] = round(float(df[col].min()), 4)
+            col_stat["max"] = round(float(df[col].max()), 4)
+        else:
+            col_stat["unique"] = int(df[col].nunique())
+            col_stat["top"] = str(df[col].mode().iloc[0]) if len(df[col].mode()) > 0 else None
+        stats[col] = col_stat
+
+    return {
+        "dataset_id": dataset.id,
+        "dataset_name": dataset.name,
+        "preview_rows": df.to_dict(orient="records"),
+        "column_stats": stats,
+        "total_rows": dataset.row_count,
+        "total_features": dataset.feature_count,
+    }

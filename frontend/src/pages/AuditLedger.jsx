@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ShieldCheck, ShieldAlert, RefreshCw, Key, Link as LinkIcon, Database, CheckCircle2, AlertTriangle, Eye, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, RefreshCw, Key, Link as LinkIcon, Database, CheckCircle2, AlertTriangle, Eye, ArrowRight, Download } from 'lucide-react';
 import StatusBadge from '../components/common/StatusBadge';
 import Loader from '../components/common/Loader';
 import Alert from '../components/common/Alert';
@@ -19,6 +19,8 @@ export default function AuditLedger() {
   const [verifyResult, setVerifyResult] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [error, setError] = useState(null);
+  const [exportFormat, setExportFormat] = useState('json');
+  const [exporting, setExporting] = useState(false);
 
   const loadLedger = async () => {
     setLoading(true);
@@ -45,6 +47,30 @@ export default function AuditLedger() {
   useEffect(() => {
     loadLedger();
   }, [filterPredictionId]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    setError(null);
+    try {
+      const data = await auditApi.exportLedger(exportFormat);
+      const text = exportFormat === 'json' ? JSON.stringify(data, null, 2) : data;
+      const blob = new Blob([text], {
+        type: exportFormat === 'csv' ? 'text/csv' : 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit_ledger.${exportFormat}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err.message || 'Ledger export failed.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleVerifyChain = async () => {
     setVerifying(true);
@@ -77,7 +103,20 @@ export default function AuditLedger() {
             Immutable, SHA-256 forward-linked evidence ledger anchoring every inference and model prediction.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <select
+            className="form-select"
+            style={{ width: 'auto', fontSize: '0.78rem' }}
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value)}
+            aria-label="Export format"
+          >
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+          </select>
+          <button className="btn btn-secondary" onClick={handleExport} disabled={exporting}>
+            <Download size={14} /> {exporting ? 'Exporting...' : 'Export'}
+          </button>
           <button className="btn btn-secondary" onClick={loadLedger}>
             <RefreshCw size={14} /> Refresh
           </button>
@@ -172,7 +211,11 @@ export default function AuditLedger() {
                     <tr
                       key={r.id || r.sequence_number}
                       onClick={() => setSelectedRecord(r)}
-                      style={{ cursor: 'pointer' }}
+                      style={{
+                        cursor: 'pointer',
+                        borderLeft: isAtk ? '3px solid var(--status-attack)' : '3px solid var(--status-benign)',
+                        transition: 'all 0.15s ease',
+                      }}
                     >
                       <td style={{ fontWeight: '700', color: 'var(--cyan-neon)', fontFamily: 'monospace' }}>
                         #{r.sequence_number}

@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      # Absolute path (4 slashes): must land inside the db_data volume at
+      # /app/data — settings.DATABASE_URL is the single owner of this URL and
+      # alembic/env.py now read it from here too.
+      - DATABASE_URL=sqlite:////app/data/sentinelcrypt.db
+    volumes:
+      - db_data:/app/data
+      - raw_data:/app/data/raw
+      - model_artifacts:/app/models/artifacts
+      - model_trained:/app/models/trained
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # Browser uses the relative /api/v1 base and goes through the Vite dev
+      # proxy; the proxy target must be the compose-internal hostname (the
+      # browser itself cannot resolve `backend`).
+      - VITE_PROXY_TARGET=http://backend:8000
+
+volumes:
+  db_data:
+  raw_data:
+  model_artifacts:
+  model_trained:
