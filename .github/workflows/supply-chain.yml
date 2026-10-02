@@ -117,5 +117,6 @@ jobs:
         run: |
           "$(go env GOPATH)/bin/gitleaks" detect \
             --source . \
+            --config .gitleaks.toml \
             --redact \
             --verbose

@@ -39,6 +39,16 @@ yarn-error.log*
 *.swp
 *.swo
 
+# Private keys & certificates — never commit real credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+# Exception: public keys explicitly whitelisted below can be re-added with git add -f
+# !results/notary/notary_public_key.pem
+
 # Data & Models (large binaries)
 *.pkl
 *.joblib
@@ -60,6 +70,16 @@ results/*
 artifacts/*
 !artifacts/*/
 !artifacts/**/.gitkeep
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Test output files
+pytest_output.txt
+test_results.txt
+test_summary.txt
 
 # Testing & Coverage
 .coverage

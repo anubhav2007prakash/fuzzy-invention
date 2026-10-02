@@ -1,0 +1,28 @@
+# .gitleaks.toml — Gitleaks v8 configuration for SentinelCrypt AI
+# https://github.com/zricethezav/gitleaks#configuration
+
+title = "SentinelCrypt AI Gitleaks Config"
+
+[extend]
+# Inherit the default upstream ruleset
+useDefault = true
+
+[allowlist]
+description = "Allowlist for test fixtures and known-safe generated artifacts"
+commits = []
+
+# The notary private key is a throwaway Ed25519 key generated exclusively
+# for unit-test signing fixtures (results/notary/). It has no production
+# access, is not reused anywhere, and will never appear in a deployed
+# environment. It has been removed from the repo going forward (see
+# .gitignore) but may still exist in older commits in the history.
+paths = [
+  '''results/notary/notary_private_key\.pem''',
+]
+
+# The public key paired with the above test notary key is safe to expose.
+[[rules]]
+id       = "generic-private-key"
+# Override to exclude results/notary paths so the test key doesn't block CI
+[rules.allowlist]
+paths = ['''results/notary/''']
