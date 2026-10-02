@@ -1,3 +1,50 @@
 MIT License
 
-Copyright (c) 2026 SentinelCrypt AI
+Copyright (c) 2026 Anubhav Prakash and SentinelCrypt AI Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+THIRD-PARTY NOTICES
+-------------------
+
+SentinelCrypt AI bundles or depends on the following open-source packages.
+Their respective licences are reproduced below in summary form. Full licence
+texts are available in the source distributions of each package.
+
+FastAPI          — MIT Licence     — https://github.com/tiangolo/fastapi
+Pydantic         — MIT Licence     — https://github.com/pydantic/pydantic
+SQLAlchemy       — MIT Licence     — https://github.com/sqlalchemy/sqlalchemy
+scikit-learn     — BSD-3-Clause    — https://github.com/scikit-learn/scikit-learn
+SHAP             — MIT Licence     — https://github.com/shap/shap
+pandas           — BSD-3-Clause    — https://github.com/pandas-dev/pandas
+NumPy            — BSD-3-Clause    — https://github.com/numpy/numpy
+React            — MIT Licence     — https://github.com/facebook/react
+Vite             — MIT Licence     — https://github.com/vitejs/vite
+Recharts         — MIT Licence     — https://github.com/recharts/recharts
+Lucide React     — ISC Licence     — https://github.com/lucide-icons/lucide
+pytest           — MIT Licence     — https://github.com/pytest-dev/pytest
+httpx            — BSD-3-Clause    — https://github.com/encode/httpx
+Alembic          — MIT Licence     — https://github.com/sqlalchemy/alembic
+uvicorn          — BSD-3-Clause    — https://github.com/encode/uvicorn
+Gitleaks         — MIT Licence     — https://github.com/zricethezav/gitleaks
+
+The use of these packages does not alter the MIT licence grant above for the
+original SentinelCrypt AI source code.
