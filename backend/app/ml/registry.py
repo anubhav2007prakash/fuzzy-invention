@@ -30,19 +30,36 @@ class ModelRegistry:
 
     @classmethod
     def get_supported_model_types(cls) -> list[str]:
-        """Return list of supported model type keys."""
-        return list(cls._MODELS.keys())
+        """Return core model types plus registered model plugins."""
+        types = list(cls._MODELS.keys())
+        try:
+            from backend.app.plugins.registry import get_registry
+
+            for item in get_registry().list("model"):
+                if item["name"] not in types:
+                    types.append(item["name"])
+        except Exception:
+            pass
+        return types
 
     @classmethod
     def get_model_class(cls, model_type: str) -> Type[BaseDetector]:
         """Lookup model class by type string."""
         model_type_clean = model_type.strip().lower()
-        if model_type_clean not in cls._MODELS:
-            supported = ", ".join(cls._MODELS.keys())
-            raise ModelTrainingError(
-                f"Unsupported model type '{model_type}'. Supported: {supported}"
-            )
-        return cls._MODELS[model_type_clean]
+        if model_type_clean in cls._MODELS:
+            return cls._MODELS[model_type_clean]
+
+        from backend.app.plugins.registry import get_registry
+
+        info = get_registry().get("model", model_type_clean)
+        factory = None if info is None else info.factory
+        if isinstance(factory, type) and issubclass(factory, BaseDetector):
+            return factory
+
+        supported = ", ".join(cls.get_supported_model_types())
+        raise ModelTrainingError(
+            f"Unsupported model type '{model_type}'. Supported: {supported}"
+        )
 
     @classmethod
     def create_model(

@@ -1,0 +1,35 @@
+name: Mutation Testing
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install project and test dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run focused mutation tests
+        run: >-
+          python scripts/mutation_harness.py
+          --max-mutants 12
+          --report artifacts/testing/mutation-report/mutation-report.json
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinelcrypt-mutation-report
+          path: artifacts/testing/mutation-report/
+          if-no-files-found: warn

@@ -6,7 +6,34 @@ import Loader from '../components/common/Loader';
 import Alert from '../components/common/Alert';
 import Modal from '../components/common/Modal';
 import HashChainVisual from '../components/charts/HashChainVisual';
+import { formatPercent, isAttackClass, parseEvidencePayload } from '../utils/format';
 import { auditApi } from '../api/audit';
+
+/** Recompute SHA-256 of the canonical payload in the browser (what the backend verifier does). */
+function usePayloadHash(payloadJson) {
+  const [hash, setHash] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!payloadJson) {
+      setHash(null);
+      return undefined;
+    }
+    crypto.subtle
+      .digest('SHA-256', new TextEncoder().encode(payloadJson))
+      .then((buf) => {
+        if (!cancelled) {
+          setHash(Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join(''));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setHash(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [payloadJson]);
+  return hash;
+}
 
 export default function AuditLedger() {
   const [searchParams] = useSearchParams();
@@ -30,7 +57,7 @@ export default function AuditLedger() {
         auditApi.listRecords({ skip: 0, limit: 100 }),
         auditApi.getStatus(),
       ]);
-      const list = rRes?.records || [];
+      const list = (rRes?.records || []).map((r) => ({ ...r, payload: parseEvidencePayload(r.payload_json) }));
       setRecords(list);
       setLedgerStatus(sRes);
       if (filterPredictionId) {
@@ -79,7 +106,7 @@ export default function AuditLedger() {
       const result = await auditApi.verifyChain({ verify_entire_chain: true });
       setVerifyResult(result);
     } catch (err) {
-      setVerifyResult({ is_valid: false, error: err.message });
+      setVerifyResult({ verified: false, message: err.message });
     } finally {
       setVerifying(false);
     }
@@ -89,7 +116,7 @@ export default function AuditLedger() {
     return <Loader text="Loading cryptographic audit ledger & verifying SHA-256 forward links..." size="lg" />;
   }
 
-  const isHealthy = ledgerStatus?.is_valid !== false;
+  const isHealthy = ledgerStatus?.is_intact !== false;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -136,16 +163,21 @@ export default function AuditLedger() {
       {/* Verification Banner */}
       {verifyResult && (
         <Alert
-          type={verifyResult.is_valid ? 'success' : 'danger'}
-          title={verifyResult.is_valid ? 'Ledger Chain Verification Succeeded' : 'Tamper Detection Alert'}
+          type={verifyResult.verified ? 'success' : 'danger'}
+          title={verifyResult.verified ? 'Ledger Chain Verification Succeeded' : 'Tamper Detection Alert'}
         >
-          {verifyResult.is_valid ? (
+          {verifyResult.verified ? (
             <div>
-              Mathematically validated <strong>{verifyResult.records_verified}</strong> records in strict sequence. All SHA-256 payload and record hashes match expected forward-linkage state. 0 corruptions detected.
+              Mathematically validated <strong>{verifyResult.checked_records}</strong> records in strict sequence. All SHA-256 payload and record hashes match expected forward-linkage state. 0 corruptions detected.
             </div>
           ) : (
             <div>
-              Verification failed at block #{verifyResult.corrupted_sequence_number || 'Unknown'}: {verifyResult.details || verifyResult.error || 'Hash mismatch.'}
+              Verification failed: {verifyResult.message || 'Hash mismatch.'}
+              {(verifyResult.failed_records || []).length > 0 && (
+                <div style={{ marginTop: '6px', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                  First anomaly: block #{verifyResult.failed_records[0].sequence_number} — {verifyResult.failed_records[0].error_type}
+                </div>
+              )}
             </div>
           )}
         </Alert>
@@ -203,8 +235,9 @@ export default function AuditLedger() {
               </thead>
               <tbody>
                 {records.map((r) => {
-                  const isAtk = r.predicted_class === 1 || r.predicted_class === 'ATTACK';
-                  const shortPayload = r.payload_hash ? `${r.payload_hash.substring(0, 10)}...` : '—';
+                  const evidence = r.payload || parseEvidencePayload(r.payload_json);
+                  const isAtk = isAttackClass(evidence?.predicted_class);
+                  const shortPayload = r.payload_json ? `${r.payload_json.substring(0, 10)}...` : '—';
                   const shortRecord = r.record_hash ? `${r.record_hash.substring(0, 10)}...` : '—';
 
                   return (
@@ -258,73 +291,86 @@ export default function AuditLedger() {
 
       {/* Record Inspection Modal */}
       {selectedRecord && (
-        <Modal
-          isOpen={!!selectedRecord}
-          onClose={() => setSelectedRecord(null)}
-          title={`Audit Block #${selectedRecord.sequence_number} Evidence`}
-          maxWidth="720px"
-          footer={
-            <button className="btn btn-secondary" onClick={() => setSelectedRecord(null)}>
-              Close
-            </button>
-          }
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div className="grid-2">
-              <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sequence Index</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--cyan-neon)', fontFamily: 'monospace' }}>
-                  Block #{selectedRecord.sequence_number}
-                </div>
-              </div>
-              <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Inference Output</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: selectedRecord.predicted_class === 1 ? 'var(--status-attack)' : 'var(--status-benign)' }}>
-                  {selectedRecord.predicted_class === 1 ? 'ATTACK' : 'BENIGN'}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem' }}>
-              <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>Record Hash (SHA-256 Link):</div>
-              <div className="hash-pill" style={{ color: 'var(--cyan-neon)', wordBreak: 'break-all' }}>
-                {selectedRecord.record_hash}
-              </div>
-
-              <div style={{ color: 'var(--text-muted)', marginTop: '8px', marginBottom: '4px' }}>Previous Block Hash:</div>
-              <div className="hash-pill" style={{ wordBreak: 'break-all' }}>
-                {selectedRecord.previous_hash || '0000000000000000000000000000000000000000000000000000000000000000 (GENESIS)'}
-              </div>
-
-              <div style={{ color: 'var(--text-muted)', marginTop: '8px', marginBottom: '4px' }}>Canonical Payload Hash:</div>
-              <div className="hash-pill" style={{ wordBreak: 'break-all' }}>
-                {selectedRecord.payload_hash}
-              </div>
-            </div>
-
-            {/* Canonical Payload JSON */}
-            <div>
-              <div style={{ fontWeight: '600', fontSize: '0.85rem', marginBottom: '6px' }}>
-                Canonical Evidence JSON:
-              </div>
-              <pre
-                className="font-mono"
-                style={{
-                  background: 'var(--bg-input)',
-                  padding: '12px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.75rem',
-                  maxHeight: '220px',
-                  overflowY: 'auto',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                {JSON.stringify(selectedRecord.payload || selectedRecord, null, 2)}
-              </pre>
-            </div>
-          </div>
-        </Modal>
+        <EvidenceInspector record={selectedRecord} onClose={() => setSelectedRecord(null)} />
       )}
     </div>
+  );
+}
+
+/** Modal inspector for a single audit block; recomputes the payload hash client-side. */
+function EvidenceInspector({ record, onClose }) {
+  const payloadHash = usePayloadHash(record.payload_json);
+  const evidence = record.payload || parseEvidencePayload(record.payload_json);
+  const isAtk = isAttackClass(evidence?.predicted_class);
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={`Audit Block #${record.sequence_number} Evidence`}
+      maxWidth="720px"
+      footer={
+        <button className="btn btn-secondary" onClick={onClose}>
+          Close
+        </button>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="grid-2">
+          <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sequence Index</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--cyan-neon)', fontFamily: 'monospace' }}>
+              Block #{record.sequence_number}
+            </div>
+          </div>
+          <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Inference Output</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: '700', color: isAtk ? 'var(--status-attack)' : 'var(--status-benign)' }}>
+              {evidence?.predicted_class ?? 'BENIGN'}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem' }}>
+          <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>Record Hash (SHA-256 Link):</div>
+          <div className="hash-pill" style={{ color: 'var(--cyan-neon)', wordBreak: 'break-all' }}>
+            {record.record_hash}
+          </div>
+
+          <div style={{ color: 'var(--text-muted)', marginTop: '8px', marginBottom: '4px' }}>Previous Block Hash:</div>
+          <div className="hash-pill" style={{ wordBreak: 'break-all' }}>
+            {record.previous_hash || `${'0'.repeat(64)} (GENESIS)`}
+          </div>
+
+          <div style={{ color: 'var(--text-muted)', marginTop: '8px', marginBottom: '4px' }}>
+            Payload Hash (recomputed in-browser from the JSON below):
+          </div>
+          <div className="hash-pill" style={{ wordBreak: 'break-all' }}>
+            {payloadHash ?? 'computing…'}
+          </div>
+        </div>
+
+        {/* Canonical Payload JSON */}
+        <div>
+          <div style={{ fontWeight: '600', fontSize: '0.85rem', marginBottom: '6px' }}>
+            Canonical Evidence JSON:
+          </div>
+          <pre
+            className="font-mono"
+            style={{
+              background: 'var(--bg-input)',
+              padding: '12px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.75rem',
+              maxHeight: '220px',
+              overflowY: 'auto',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            {record.payload_json || JSON.stringify(evidence, null, 2)}
+          </pre>
+        </div>
+      </div>
+    </Modal>
   );
 }

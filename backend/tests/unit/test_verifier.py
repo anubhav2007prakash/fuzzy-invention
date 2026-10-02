@@ -99,6 +99,45 @@ class TestCryptographicVerifier(unittest.TestCase):
         corrupted_types = [f["error_type"] for f in result.failed_records]
         self.assertIn("BROKEN_SEQUENCE", corrupted_types)
 
+    # ── Mutation-testing hardening (docs/testing/MUTATION_TESTING.md) ──────
+    # The following tests pin behaviours the mutation harness showed were
+    # only defended by redundant checks — each is now asserted directly.
+
+    def test_broken_sequence_error_type_is_emitted(self):
+        """Kills mutant `i > 0` -> `i > 1`: a gap at the FIRST pair (records
+        1->3) must still produce the BROKEN_SEQUENCE finding, not only the
+        PREVIOUS_HASH_MISMATCH that independently covers it."""
+        chain = self._create_valid_chain(5)
+        del chain[1]  # gap at first pair: seq 1 -> 3
+        result = verify_ledger(chain)
+        self.assertFalse(result.verified)
+        by_type = {}
+        for f in result.failed_records:
+            by_type.setdefault(f["error_type"], []).append(f["sequence_number"])
+        self.assertIn("BROKEN_SEQUENCE", by_type)
+        self.assertIn(3, by_type["BROKEN_SEQUENCE"])
+
+    def test_empty_ledger_message_is_exact(self):
+        """Kills mutant duration_ms=0.0 -> 1.0 and message-shape mutants: the
+        empty-ledger sentinel must report verified=True, 0 records, and the
+        documented message."""
+        result = verify_ledger([])
+        self.assertTrue(result.verified)
+        d = result.to_dict()
+        self.assertEqual(d["checked_records"], 0)
+        self.assertEqual(d["tamper_detected"], False)
+        self.assertEqual(d["verification_duration_ms"], 0.0)
+        self.assertIn("empty", d["message"].lower())
+
+    def test_success_message_mentions_full_count(self):
+        """Kills survivor at line 107 (and->or / count mutants): the success
+        message must contain the exact checked-record count."""
+        chain = self._create_valid_chain(7)
+        result = verify_ledger(chain)
+        self.assertTrue(result.verified)
+        self.assertIn("7", result.message)
+        self.assertIn("verified successfully", result.message.lower())
+
 
 if __name__ == "__main__":
     unittest.main()

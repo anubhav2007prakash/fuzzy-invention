@@ -1,0 +1,27 @@
+{
+  "configuration": {
+    "n_samples": 300,
+    "random_state": 42
+  },
+  "dataset_disclaimer": "Current benchmark results use deterministic synthetic network-flow data with controlled properties. They are not real UNSW-NB15 or CICIDS2017 measurements.",
+  "dataset_scope": "synthetic",
+  "environment": {
+    "numpy_version": "2.4.3",
+    "pandas_version": "3.0.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.3",
+    "shap_version": "0.52.0",
+    "sklearn_version": "1.8.0"
+  },
+  "experiment_id": "EXP-A",
+  "generated_at": "2026-09-22T04:22:33Z",
+  "git": {
+    "branch": "master",
+    "commit": "dcd20e6",
+    "dirty_worktree": true
+  },
+  "random_seed": 42,
+  "result_artifact": "exp_a_cross_dataset.json",
+  "status": "COMPLETED",
+  "title": "Cross-Dataset Generalization Gap (Synthetic Data)"
+}

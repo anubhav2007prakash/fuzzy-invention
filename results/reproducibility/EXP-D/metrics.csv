@@ -1,0 +1,15 @@
+metric,value
+logistic_regression.model_type,Logistic Regression (Linear Baseline)
+logistic_regression.accuracy,1.0
+logistic_regression.f1_score,1.0
+logistic_regression.roc_auc,1.0
+logistic_regression.training_time_ms,21.59
+logistic_regression.inference_time_us,7.34
+random_forest.model_type,Random Forest (Non-linear Ensemble)
+random_forest.accuracy,1.0
+random_forest.f1_score,1.0
+random_forest.roc_auc,1.0
+random_forest.training_time_ms,83.35
+random_forest.inference_time_us,147.4
+cryptographic_overhead.canonicalization_and_sha256_us,13.84
+cryptographic_overhead.relative_overhead_pct,~8.6% of total pipeline

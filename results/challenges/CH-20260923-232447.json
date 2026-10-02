@@ -1,0 +1,202 @@
+{
+  "analysis": {
+    "metric_stats": {
+      "comparison.cryptographic_overhead.canonicalization_and_sha256_us": {
+        "ci95_high": 16.23,
+        "ci95_low": 16.23,
+        "max": 16.23,
+        "mean": 16.23,
+        "min": 16.23,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.inference_time_us": {
+        "ci95_high": 4.47,
+        "ci95_low": 4.47,
+        "max": 4.47,
+        "mean": 4.47,
+        "min": 4.47,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.training_time_ms": {
+        "ci95_high": 11.17,
+        "ci95_low": 11.17,
+        "max": 11.17,
+        "mean": 11.17,
+        "min": 11.17,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.random_forest.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.random_forest.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.random_forest.inference_time_us": {
+        "ci95_high": 131.83,
+        "ci95_low": 131.83,
+        "max": 131.83,
+        "mean": 131.83,
+        "min": 131.83,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.random_forest.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "comparison.random_forest.training_time_ms": {
+        "ci95_high": 90.09,
+        "ci95_low": 90.09,
+        "max": 90.09,
+        "mean": 90.09,
+        "min": 90.09,
+        "n": 1,
+        "std": 0.0
+      }
+    },
+    "runs": 1,
+    "runtime_ms": {
+      "ci95_high": 380.0999,
+      "ci95_low": 380.0999,
+      "max": 380.0999,
+      "mean": 380.0999,
+      "min": 380.0999,
+      "n": 1,
+      "std": 0.0
+    }
+  },
+  "challenge_id": "CH-20260923-232447",
+  "completed_at": "2026-09-23T17:54:48Z",
+  "configuration": {
+    "n_samples": 250,
+    "random_state": 42
+  },
+  "created_at": "2026-09-23T17:54:47Z",
+  "dataset": "Synthetic-scope protocol data (labelled synthetic).",
+  "evidence_hash": "096840c3b1926410dffdaee503f47bb99e1efc7875523d228ab2ec8f76347508",
+  "experiment": "EXP-D",
+  "hypothesis": "Persisted challenges are retrievable from results/challenges.",
+  "kind": "standard",
+  "reproducibility_package": "available via /research/reproducibility/export",
+  "runs": [
+    {
+      "comparison": {
+        "cryptographic_overhead": {
+          "canonicalization_and_sha256_us": 16.23,
+          "relative_overhead_pct": "~11.0% of total pipeline"
+        },
+        "logistic_regression": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 4.47,
+          "model_type": "Logistic Regression (Linear Baseline)",
+          "roc_auc": 1.0,
+          "training_time_ms": 11.17
+        },
+        "random_forest": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 131.83,
+          "model_type": "Random Forest (Non-linear Ensemble)",
+          "roc_auc": 1.0,
+          "training_time_ms": 90.09
+        }
+      },
+      "configuration_hash": "3d6af57f0e1210f7b98a1b52fa962272db2d46f4c9a76d5d0baa076a15c4995b",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-D",
+      "result_hash": "e1d9454d567187454a5f244ac7144afdfaafc94eab64bb2a54c7f24823cea771",
+      "status": "COMPLETED",
+      "title": "Model Architecture & Runtime Overhead Comparison",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "Random Forest F1 score from EXP-D.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    }
+  ],
+  "seed": 42,
+  "status": "COMPLETED",
+  "title": "Persistence probe"
+}

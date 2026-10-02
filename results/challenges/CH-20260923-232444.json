@@ -1,0 +1,513 @@
+{
+  "analysis": {
+    "drift_slope_per_run": 0.0,
+    "interpretation": "Metric variation across repeated runs; non-zero drift slope indicates run-order dependence (seed variation or version drift).",
+    "metric_stats": {
+      "metrics.generalization_gap.delta_accuracy": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.generalization_gap.delta_f1": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.in_distribution.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.in_distribution.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.in_distribution.precision": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.in_distribution.recall": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.in_distribution.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.precision": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.recall": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 4,
+        "std": 0.0
+      }
+    },
+    "runs": 4,
+    "runtime_ms": {
+      "ci95_high": 487.51495,
+      "ci95_low": 341.86795,
+      "max": 481.0758,
+      "mean": 414.69145,
+      "min": 376.1863,
+      "n": 4,
+      "std": 45.765737
+    }
+  },
+  "challenge_id": "CH-20260923-232444",
+  "completed_at": "2026-09-23T17:54:45Z",
+  "configuration": {
+    "n_samples": 300,
+    "random_state": 42,
+    "vary_seed": true
+  },
+  "created_at": "2026-09-23T17:54:44Z",
+  "dataset": "Synthetic-scope protocol data (labelled synthetic).",
+  "evidence_hash": "0413dd43df3916d5dfcfd2313e0ed40789949f224e194db8d06008f0cc468ba1",
+  "experiment": "EXP-A",
+  "hypothesis": "Metric variation across repeated runs stays within one point of F1.",
+  "kind": "longitudinal",
+  "reproducibility_package": "available via /research/reproducibility/export",
+  "runs": [
+    {
+      "configuration_hash": "7204fc41ccefc5b3c71dc33892d17e8c75f7b675121d407eeffded0e97122113",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-A",
+      "metrics": {
+        "generalization_gap": {
+          "delta_accuracy": 0.0,
+          "delta_f1": 0.0,
+          "interpretation": "A performance drop of 0.0% F1 was observed due to distribution shift across independent network environments."
+        },
+        "in_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Source Synthetic Partition (shift_scale=1.0)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        },
+        "out_of_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Target Synthetic Partition (shift_scale=1.65)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        }
+      },
+      "parameters": {
+        "features": [
+          "dur",
+          "spkts",
+          "dpkts",
+          "sbytes",
+          "dbytes",
+          "rate",
+          "sttl",
+          "dttl",
+          "sload",
+          "dload"
+        ],
+        "model": "RandomForestClassifier",
+        "n_samples": 300,
+        "note": "Synthetic data partitions with controlled distribution shift. Not real UNSW-NB15/CICIDS2017 datasets.",
+        "random_state": 42,
+        "source_attack_ratio": 0.3,
+        "source_shift_scale": 1.0,
+        "target_attack_ratio": 0.35,
+        "target_shift_scale": 1.65
+      },
+      "result_hash": "eef9d83f5c93fd8725dd8d60b7b81abf789bcdb1bb167da798b6f2e7e1d90b7f",
+      "status": "COMPLETED",
+      "title": "Cross-Dataset Generalization Gap (Synthetic Data)",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "In-distribution F1 score from EXP-A.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "d36a1a63b8f8dbaa1a6939d56992011b26a65a380268e928567d2c8dd942f095",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-A",
+      "metrics": {
+        "generalization_gap": {
+          "delta_accuracy": 0.0,
+          "delta_f1": 0.0,
+          "interpretation": "A performance drop of 0.0% F1 was observed due to distribution shift across independent network environments."
+        },
+        "in_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Source Synthetic Partition (shift_scale=1.0)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        },
+        "out_of_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Target Synthetic Partition (shift_scale=1.65)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        }
+      },
+      "parameters": {
+        "features": [
+          "dur",
+          "spkts",
+          "dpkts",
+          "sbytes",
+          "dbytes",
+          "rate",
+          "sttl",
+          "dttl",
+          "sload",
+          "dload"
+        ],
+        "model": "RandomForestClassifier",
+        "n_samples": 300,
+        "note": "Synthetic data partitions with controlled distribution shift. Not real UNSW-NB15/CICIDS2017 datasets.",
+        "random_state": 43,
+        "source_attack_ratio": 0.3,
+        "source_shift_scale": 1.0,
+        "target_attack_ratio": 0.35,
+        "target_shift_scale": 1.65
+      },
+      "result_hash": "0c5cd334934fd53c85d0b1748b960cbb3503f6e9091dc60d484596fb2b20ff10",
+      "status": "COMPLETED",
+      "title": "Cross-Dataset Generalization Gap (Synthetic Data)",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "In-distribution F1 score from EXP-A.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "34b42df3dce93949e86c37420e8e961ce442c7b08c57790388ed08ce10d8f0a3",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-A",
+      "metrics": {
+        "generalization_gap": {
+          "delta_accuracy": 0.0,
+          "delta_f1": 0.0,
+          "interpretation": "A performance drop of 0.0% F1 was observed due to distribution shift across independent network environments."
+        },
+        "in_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Source Synthetic Partition (shift_scale=1.0)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        },
+        "out_of_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Target Synthetic Partition (shift_scale=1.65)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        }
+      },
+      "parameters": {
+        "features": [
+          "dur",
+          "spkts",
+          "dpkts",
+          "sbytes",
+          "dbytes",
+          "rate",
+          "sttl",
+          "dttl",
+          "sload",
+          "dload"
+        ],
+        "model": "RandomForestClassifier",
+        "n_samples": 300,
+        "note": "Synthetic data partitions with controlled distribution shift. Not real UNSW-NB15/CICIDS2017 datasets.",
+        "random_state": 44,
+        "source_attack_ratio": 0.3,
+        "source_shift_scale": 1.0,
+        "target_attack_ratio": 0.35,
+        "target_shift_scale": 1.65
+      },
+      "result_hash": "c25274c1c2464ff00be5b1ec6d6da4a12f09d839e15acf919c10733c587465f4",
+      "status": "COMPLETED",
+      "title": "Cross-Dataset Generalization Gap (Synthetic Data)",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "In-distribution F1 score from EXP-A.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "5acde0525052b52fc5ef7d1306e67c0bd0b54eeddec04f4ae9762903b7818623",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-A",
+      "metrics": {
+        "generalization_gap": {
+          "delta_accuracy": 0.0,
+          "delta_f1": 0.0,
+          "interpretation": "A performance drop of 0.0% F1 was observed due to distribution shift across independent network environments."
+        },
+        "in_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Source Synthetic Partition (shift_scale=1.0)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        },
+        "out_of_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Target Synthetic Partition (shift_scale=1.65)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        }
+      },
+      "parameters": {
+        "features": [
+          "dur",
+          "spkts",
+          "dpkts",
+          "sbytes",
+          "dbytes",
+          "rate",
+          "sttl",
+          "dttl",
+          "sload",
+          "dload"
+        ],
+        "model": "RandomForestClassifier",
+        "n_samples": 300,
+        "note": "Synthetic data partitions with controlled distribution shift. Not real UNSW-NB15/CICIDS2017 datasets.",
+        "random_state": 45,
+        "source_attack_ratio": 0.3,
+        "source_shift_scale": 1.0,
+        "target_attack_ratio": 0.35,
+        "target_shift_scale": 1.65
+      },
+      "result_hash": "101b7446199749f6e1efdc3a25a539b4b4ddc264513d6452506f27adc9be66f6",
+      "status": "COMPLETED",
+      "title": "Cross-Dataset Generalization Gap (Synthetic Data)",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "In-distribution F1 score from EXP-A.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    }
+  ],
+  "seed": 42,
+  "status": "COMPLETED",
+  "title": "Longitudinal EXP-A"
+}

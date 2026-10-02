@@ -54,6 +54,8 @@ class PreprocessingResult:
         feature_schema: List[Dict[str, str]],
         random_seed: int,
         train_ratio: float,
+        X_calibration: Optional[np.ndarray] = None,
+        y_calibration: Optional[np.ndarray] = None,
     ):
         self.X_train = X_train
         self.X_test = X_test
@@ -67,6 +69,8 @@ class PreprocessingResult:
         self.feature_schema = feature_schema
         self.random_seed = random_seed
         self.train_ratio = train_ratio
+        self.X_calibration = X_calibration
+        self.y_calibration = y_calibration
 
 
 def _is_string_like(series: pd.Series) -> bool:
@@ -140,6 +144,7 @@ def build_preprocessing_pipeline(
     scaler_type: str = "robust",    # "robust" or "standard"
     save_dir: Optional[Path] = None,
     artifact_name: str = "preprocessing",
+    calibration_fraction: float = 0.0,
 ) -> PreprocessingResult:
     """
     Execute the full leakage-safe preprocessing pipeline:
@@ -148,14 +153,20 @@ def build_preprocessing_pipeline(
     2. Handle infinity values → NaN.
     3. Encode target labels.
     4. Stratified train/test split (fitted on nothing yet).
-    5. Encode categorical features using **train encoders only**.
-    6. Fit imputer on X_train, transform both splits.
-    7. Fit scaler on X_train, transform both splits.
+    5. Optionally reserve a calibration subset from the train partition.
+    6. Encode categorical features using **model-fit partition only**.
+    7. Fit imputer and scaler on model-fit rows; transform other partitions.
     8. Serialise pipeline artefacts.
     """
     save_dir = save_dir or settings.MODELS_ARTIFACTS_DIR
     save_dir = Path(save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
+    if (
+        isinstance(calibration_fraction, bool)
+        or not isinstance(calibration_fraction, (int, float))
+        or not 0.0 <= calibration_fraction < 0.5
+    ):
+        raise ValueError("calibration_fraction must be in [0, 0.5).")
 
     # ── Step 1: Identify columns ──────────────────────────────────────────────
     feature_cols, numeric_cols, categorical_cols = _identify_columns(df, target_column)
@@ -181,11 +192,26 @@ def build_preprocessing_pipeline(
         random_state=random_seed,
         stratify=y_encoded,
     )
+    X_calibration_raw = None
+    y_calibration = None
+    if calibration_fraction:
+        X_train_raw, X_calibration_raw, y_train, y_calibration = train_test_split(
+            X_train_raw,
+            y_train,
+            test_size=calibration_fraction,
+            random_state=random_seed + 1,
+            stratify=y_train,
+        )
     logger.info("Split — train: %d rows, test: %d rows", len(X_train_raw), len(X_test_raw))
 
     # ── Step 5: Encode categoricals (fit on train only) ───────────────────────
     X_train_enc, cat_encoders = _encode_categoricals(X_train_raw, categorical_cols)
     X_test_enc, _ = _encode_categoricals(X_test_raw, categorical_cols, fit_encoders=cat_encoders)
+    X_calibration_enc = None
+    if X_calibration_raw is not None:
+        X_calibration_enc, _ = _encode_categoricals(
+            X_calibration_raw, categorical_cols, fit_encoders=cat_encoders
+        )
 
     # ── Step 6: Convert to pure numpy float64 ────────────────────────────────
     # We extract each column individually to bypass pandas Arrow-backed string
@@ -209,17 +235,29 @@ def build_preprocessing_pipeline(
 
     X_train_num = _df_to_float64(X_train_enc, feature_cols)
     X_test_num = _df_to_float64(X_test_enc, feature_cols)
+    X_calibration_num = (
+        _df_to_float64(X_calibration_enc, feature_cols)
+        if X_calibration_enc is not None else None
+    )
 
     # ── Step 7: Impute missing values (fit on train only) ─────────────────────
     imputer = SimpleImputer(strategy="median")
     X_train_imp = imputer.fit_transform(X_train_num)
     X_test_imp = imputer.transform(X_test_num)
+    X_calibration_imp = (
+        imputer.transform(X_calibration_num)
+        if X_calibration_num is not None else None
+    )
 
     # ── Step 8: Scale (fit on train only) ─────────────────────────────────────
     ScalerClass = RobustScaler if scaler_type == "robust" else StandardScaler
     scaler = ScalerClass()
     X_train_scaled = scaler.fit_transform(X_train_imp)
     X_test_scaled = scaler.transform(X_test_imp)
+    X_calibration_scaled = (
+        scaler.transform(X_calibration_imp)
+        if X_calibration_imp is not None else None
+    )
 
     # ── Step 9: Build sklearn Pipeline wrapper for inference ──────────────────
     # The pipeline is used at inference time to transform a single sample
@@ -262,6 +300,8 @@ def build_preprocessing_pipeline(
         feature_schema=feature_schema,
         random_seed=random_seed,
         train_ratio=train_ratio,
+        X_calibration=X_calibration_scaled,
+        y_calibration=y_calibration,
     )
 
 

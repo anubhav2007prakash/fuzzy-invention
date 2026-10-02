@@ -17,7 +17,7 @@ from backend.app.core.exceptions import (
 from backend.app.core.logging import get_logger
 from backend.app.cryptography.canonicalization import canonicalize
 from backend.app.cryptography.hashing import sha256_hash
-from backend.app.db.models import Prediction
+from backend.app.db.models import ArtifactLineage, Prediction
 from backend.app.db.repositories.model_repository import ModelRepository
 from backend.app.db.repositories.prediction_repository import PredictionRepository
 from backend.app.ml.preprocessing.pipeline import (
@@ -141,10 +141,47 @@ class PredictionService:
         )
 
         # 9. Anchor evidence into cryptographic audit chain
-        self.audit_service.create_audit_entry(
+        audit_record = self.audit_service.create_audit_entry(
             prediction_id=prediction_id,
             evidence_payload=evidence_payload,
         )
+        from backend.app.services.lineage_service import ArtifactLineageService, artifact_digest
+
+        model_parent = f"model:{model_record.id}"
+        model_lineage_exists = self.db.get(ArtifactLineage, model_parent) is not None
+        ArtifactLineageService(self.db).record_chain([{
+            "artifact_id": f"prediction:{prediction_id}",
+            "artifact_type": "prediction",
+            "parent_artifact_id": model_parent if model_lineage_exists else None,
+            "created_at": db_prediction.created_at,
+            "version": "1",
+            "sha256": artifact_digest(evidence_payload),
+            "experiment_id": model_record.experiment_id,
+            "metadata": {
+                "model_id": model_record.id,
+                "input_hash": input_hash,
+                "predicted_class": predicted_class,
+                "digest_scope": "canonical prediction evidence payload",
+                **({} if model_lineage_exists else {
+                    "lineage_warning": "Registered model has no lineage record.",
+                }),
+            },
+        }])
+        ArtifactLineageService(self.db).record_chain([{
+            "artifact_id": f"evidence:{audit_record.id}",
+            "artifact_type": "cryptographic_evidence",
+            "parent_artifact_id": f"prediction:{prediction_id}",
+            "created_at": audit_record.created_at,
+            "version": "1",
+            "sha256": audit_record.record_hash,
+            "experiment_id": model_record.experiment_id,
+            "metadata": {
+                "prediction_id": prediction_id,
+                "sequence_number": audit_record.sequence_number,
+                "previous_hash": audit_record.previous_hash,
+                "digest_scope": "existing audit-chain record hash",
+            },
+        }])
 
         return PredictionResponse(
             prediction_id=db_prediction.id,
@@ -238,10 +275,47 @@ class PredictionService:
                 request_source=request_source,
             )
 
-            self.audit_service.create_audit_entry(
+            audit_record = self.audit_service.create_audit_entry(
                 prediction_id=prediction_id,
                 evidence_payload=evidence_payload,
             )
+            from backend.app.services.lineage_service import ArtifactLineageService, artifact_digest
+
+            model_parent = f"model:{model_record.id}"
+            model_lineage_exists = self.db.get(ArtifactLineage, model_parent) is not None
+            ArtifactLineageService(self.db).record_chain([{
+                "artifact_id": f"prediction:{prediction_id}",
+                "artifact_type": "prediction",
+                "parent_artifact_id": model_parent if model_lineage_exists else None,
+                "created_at": db_prediction.created_at,
+                "version": "1",
+                "sha256": artifact_digest(evidence_payload),
+                "experiment_id": model_record.experiment_id,
+                "metadata": {
+                    "model_id": model_record.id,
+                    "input_hash": input_hash,
+                    "predicted_class": predicted_class,
+                    "digest_scope": "canonical prediction evidence payload",
+                    **({} if model_lineage_exists else {
+                        "lineage_warning": "Registered model has no lineage record.",
+                    }),
+                },
+            }])
+            ArtifactLineageService(self.db).record_chain([{
+                "artifact_id": f"evidence:{audit_record.id}",
+                "artifact_type": "cryptographic_evidence",
+                "parent_artifact_id": f"prediction:{prediction_id}",
+                "created_at": audit_record.created_at,
+                "version": "1",
+                "sha256": audit_record.record_hash,
+                "experiment_id": model_record.experiment_id,
+                "metadata": {
+                    "prediction_id": prediction_id,
+                    "sequence_number": audit_record.sequence_number,
+                    "previous_hash": audit_record.previous_hash,
+                    "digest_scope": "existing audit-chain record hash",
+                },
+            }])
 
             responses.append(
                 PredictionResponse(

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import QuickFind from './QuickFind';
 
 export default function MainLayout() {
   const location = useLocation();
@@ -17,6 +18,11 @@ export default function MainLayout() {
       case '/experiments': return { title: 'Research Experiments (EXP A-D)', section: 'Research Suite' };
       case '/docs': return { title: 'Architecture Documentation', section: 'Research Suite' };
       case '/settings': return { title: 'System Environment & Config', section: 'Research Suite' };
+      case '/benchmark': return { title: 'SentinelCrypt Benchmark', section: 'Research Suite' };
+      case '/challenges': return { title: 'Research Challenges', section: 'Research Suite' };
+      case '/provenance': return { title: 'Provenance Graph', section: 'Research Suite' };
+      case '/review': return { title: 'Review & Collaboration', section: 'Research Suite' };
+      case '/professor-mode': return { title: 'Presentation Summary', section: 'Research Suite' };
       default: return { title: 'SentinelCrypt AI', section: 'Workspace' };
     }
   };
@@ -38,6 +44,7 @@ export default function MainLayout() {
       </div>
 
       <Sidebar />
+      <QuickFind />
       <div className="main-wrapper">
         <Header pageTitle={pageInfo.title} pageSection={pageInfo.section} />
         <main className="page-content">

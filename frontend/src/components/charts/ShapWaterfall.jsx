@@ -24,12 +24,12 @@ export default function ShapWaterfall({ topFeatures = [], baseValue, predictionS
           const val = feat.shap_value ?? feat.attribution ?? 0;
           const isPositive = val >= 0;
           const barWidthPercent = Math.min(Math.round((Math.abs(val) / maxAbsVal) * 48), 48); // max 48% of track width
-          const rawVal = feat.feature_value !== undefined ? String(feat.feature_value) : '';
+          const rawVal = feat.value !== undefined ? String(feat.value) : (feat.feature_value !== undefined ? String(feat.feature_value) : '');
 
           return (
-            <div key={feat.feature_name || idx} className="shap-bar-container">
-              <div className="shap-feature-name" title={feat.feature_name}>
-                {feat.feature_name}
+            <div key={feat.feature || feat.feature_name || idx} className="shap-bar-container">
+              <div className="shap-feature-name" title={feat.feature || feat.feature_name}>
+                {feat.feature || feat.feature_name}
                 {rawVal && (
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginLeft: '6px' }}>
                     ({Number(rawVal).toFixed ? Number(rawVal).toFixed(2) : rawVal})

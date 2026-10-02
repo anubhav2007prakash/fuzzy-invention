@@ -1,0 +1,27 @@
+{
+  "status": "not_run",
+  "generated": null,
+  "killed": null,
+  "survived": null,
+  "mutation_score": null,
+  "reason": "No corrected-run measurement was possible in the current sandbox. The configured Python environment has no pytest, and its OS temporary-directory cleanup was denied by sandbox policy.",
+  "current_method": {
+    "runner": "scripts/mutation_harness.py",
+    "max_mutants_per_module": 12,
+    "targets": [
+      "backend/app/cryptography/canonicalization.py",
+      "backend/app/cryptography/hash_chain.py",
+      "backend/app/cryptography/hashing.py",
+      "backend/app/cryptography/verifier.py",
+      "backend/app/ml/preprocessing/validators.py",
+      "backend/app/ml/preprocessing/pipeline.py",
+      "backend/app/schemas/model.py",
+      "backend/app/schemas/dataset.py",
+      "backend/app/schemas/experiment.py",
+      "backend/app/research/reproducibility.py",
+      "backend/app/services/experiment_service.py",
+      "backend/app/api/v1/experiments.py"
+    ],
+    "note": "This file is a not-run status record, not a mutation score. Weekly/manual Ubuntu CI is configured to replace it with measured counts."
+  }
+}

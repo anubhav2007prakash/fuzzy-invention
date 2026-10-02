@@ -29,7 +29,7 @@ export default function Explainability() {
         const list = pRes?.predictions || [];
         setPredictions(list);
         if (!selectedPredictionId && list.length > 0) {
-          setSelectedPredictionId(list[0].id);
+          setSelectedPredictionId(list[0].prediction_id);
         }
       } catch (err) {
         console.error('Failed to load predictions for explainability:', err);
@@ -84,8 +84,15 @@ export default function Explainability() {
   };
 
   const topFeatures = explanation?.top_features || explanation?.attributions || [];
-  const selectedPred = predictions.find((p) => p.id === selectedPredictionId);
-  const isAttack = selectedPred ? (selectedPred.predicted_class === 1 || selectedPred.predicted_class === 'ATTACK') : false;
+  const selectedPred = predictions.find((p) => p.prediction_id === selectedPredictionId);
+  const isAttack = selectedPred ? String(selectedPred.predicted_class).toUpperCase().includes('ATTACK') : false;
+  // API class labels are '0'/'1'/'UNCERTAIN' depending on the trained model
+  const classLabel = (cls) => {
+    const s = String(cls ?? '').toUpperCase();
+    if (s === '1' || s.includes('ATTACK')) return 'ATTACK';
+    if (s === '0' || s.includes('BENIGN')) return 'BENIGN';
+    return s || '—';
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -129,8 +136,8 @@ export default function Explainability() {
             onChange={(e) => setSelectedPredictionId(e.target.value)}
           >
             {predictions.map((p) => (
-              <option key={p.id} value={p.id}>
-                ID: {p.id.substring(0, 8)}... | Class: {p.predicted_class === 1 ? 'ATTACK' : 'BENIGN'} ({p.probability ? `${(p.probability * 100).toFixed(1)}%` : '—'}) | {p.created_at ? new Date(p.created_at).toLocaleTimeString() : ''}
+              <option key={p.prediction_id} value={p.prediction_id}>
+                ID: {String(p.prediction_id).substring(0, 8)}... | Class: {classLabel(p.predicted_class)} ({p.confidence ? `${(p.confidence * 100).toFixed(1)}%` : '—'}) | {p.created_at ? new Date(p.created_at).toLocaleTimeString() : ''}
               </option>
             ))}
           </select>
@@ -159,7 +166,7 @@ export default function Explainability() {
             <ShapWaterfall
               topFeatures={topFeatures}
               baseValue={explanation.base_value}
-              predictionScore={explanation.prediction_score || selectedPred?.probability}
+              predictionScore={explanation.prediction_score || selectedPred?.confidence}
             />
 
             <div style={{ marginTop: '20px' }}>

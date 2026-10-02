@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { healthApi } from '../../api/health';
 import { RefreshCw, Search, ChevronRight } from 'lucide-react';
+
+// First page of each nav section — where a breadcrumb section click lands.
+const SECTION_HOME = {
+  Workspace: '/',
+  'Core Pipelines': '/datasets',
+  'Research Suite': '/experiments',
+};
 
 export default function Header({ pageTitle, pageSection = 'Workspace' }) {
   const [health, setHealth] = useState({ status: 'checking', service: 'SentinelCrypt AI' });
@@ -30,9 +38,13 @@ export default function Header({ pageTitle, pageSection = 'Workspace' }) {
     <header className="top-header">
       {/* Qronos Breadcrumb Navigation */}
       <div className="header-breadcrumbs">
-        <span className="breadcrumb-root">SentinelCrypt</span>
+        <Link to="/" className="breadcrumb-link">SentinelCrypt</Link>
         <ChevronRight size={12} className="breadcrumb-separator" />
-        <span className="breadcrumb-root">{pageSection}</span>
+        {SECTION_HOME[pageSection] ? (
+          <Link to={SECTION_HOME[pageSection]} className="breadcrumb-link">{pageSection}</Link>
+        ) : (
+          <span className="breadcrumb-root">{pageSection}</span>
+        )}
         <ChevronRight size={12} className="breadcrumb-separator" />
         <span className="breadcrumb-current">{pageTitle}</span>
       </div>

@@ -1,0 +1,326 @@
+{
+  "analysis": {
+    "determinism_classification": "fully_deterministic: canonical result hashes and all metrics reproduce bit-identically.",
+    "hash_identical_across_runs": true,
+    "metric_stats": {
+      "metrics.generalization_gap.delta_accuracy": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.generalization_gap.delta_f1": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.in_distribution.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.in_distribution.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.in_distribution.precision": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.in_distribution.recall": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.in_distribution.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.precision": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.recall": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "metrics.out_of_distribution.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 2,
+        "std": 0.0
+      }
+    },
+    "metrics_deterministic": true,
+    "result_hashes": [
+      "b80a84d30783914199cac327166607bfc8698f5606a7c0d963d108ddf9d9a869",
+      "b80a84d30783914199cac327166607bfc8698f5606a7c0d963d108ddf9d9a869"
+    ],
+    "runs": 2
+  },
+  "challenge_id": "CH-20260924-124241",
+  "completed_at": "2026-09-24T07:12:42Z",
+  "configuration": {
+    "n_samples": 600,
+    "random_state": 42
+  },
+  "created_at": "2026-09-24T07:12:41Z",
+  "dataset": "Preset research question (synthetic-scope protocol data).",
+  "evidence_hash": "d15c76e68231ae1622ae902513a5817d2a9a61e44cdaf556260532d44e335714",
+  "experiment": "EXP-A",
+  "hypothesis": "Runs with identical configuration and seed reproduce bit-identical canonical result hashes.",
+  "kind": "reproducibility",
+  "question": "Can reproducibility metadata and cryptographic evidence improve independent verification of ML security experiments?",
+  "question_id": "Q5",
+  "reproducibility_package": "available via /research/reproducibility/export",
+  "runs": [
+    {
+      "configuration_hash": "6d688c3e6820f580a4c1bae295a148faaeb711eb309f0c47943dd28888013461",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-A",
+      "metrics": {
+        "generalization_gap": {
+          "delta_accuracy": 0.0,
+          "delta_f1": 0.0,
+          "interpretation": "A performance drop of 0.0% F1 was observed due to distribution shift across independent network environments."
+        },
+        "in_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Source Synthetic Partition (shift_scale=1.0)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        },
+        "out_of_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Target Synthetic Partition (shift_scale=1.65)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        }
+      },
+      "parameters": {
+        "features": [
+          "dur",
+          "spkts",
+          "dpkts",
+          "sbytes",
+          "dbytes",
+          "rate",
+          "sttl",
+          "dttl",
+          "sload",
+          "dload"
+        ],
+        "model": "RandomForestClassifier",
+        "n_samples": 600,
+        "note": "Synthetic data partitions with controlled distribution shift. Not real UNSW-NB15/CICIDS2017 datasets.",
+        "random_state": 42,
+        "source_attack_ratio": 0.3,
+        "source_shift_scale": 1.0,
+        "target_attack_ratio": 0.35,
+        "target_shift_scale": 1.65
+      },
+      "result_hash": "b80a84d30783914199cac327166607bfc8698f5606a7c0d963d108ddf9d9a869",
+      "status": "COMPLETED",
+      "title": "Cross-Dataset Generalization Gap (Synthetic Data)",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "In-distribution F1 score from EXP-A.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "6d688c3e6820f580a4c1bae295a148faaeb711eb309f0c47943dd28888013461",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-A",
+      "metrics": {
+        "generalization_gap": {
+          "delta_accuracy": 0.0,
+          "delta_f1": 0.0,
+          "interpretation": "A performance drop of 0.0% F1 was observed due to distribution shift across independent network environments."
+        },
+        "in_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Source Synthetic Partition (shift_scale=1.0)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        },
+        "out_of_distribution": {
+          "accuracy": 1.0,
+          "dataset": "Target Synthetic Partition (shift_scale=1.65)",
+          "f1_score": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "roc_auc": 1.0
+        }
+      },
+      "parameters": {
+        "features": [
+          "dur",
+          "spkts",
+          "dpkts",
+          "sbytes",
+          "dbytes",
+          "rate",
+          "sttl",
+          "dttl",
+          "sload",
+          "dload"
+        ],
+        "model": "RandomForestClassifier",
+        "n_samples": 600,
+        "note": "Synthetic data partitions with controlled distribution shift. Not real UNSW-NB15/CICIDS2017 datasets.",
+        "random_state": 42,
+        "source_attack_ratio": 0.3,
+        "source_shift_scale": 1.0,
+        "target_attack_ratio": 0.35,
+        "target_shift_scale": 1.65
+      },
+      "result_hash": "b80a84d30783914199cac327166607bfc8698f5606a7c0d963d108ddf9d9a869",
+      "status": "COMPLETED",
+      "title": "Cross-Dataset Generalization Gap (Synthetic Data)",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "In-distribution F1 score from EXP-A.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    }
+  ],
+  "seed": 42,
+  "status": "COMPLETED",
+  "title": "Q5: Can reproducibility metadata and cryptographic evidence improve independent veri"
+}

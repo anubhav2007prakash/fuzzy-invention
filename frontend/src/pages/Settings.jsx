@@ -3,6 +3,7 @@ import { Settings as SettingsIcon, Server, Shield, RefreshCw, CheckCircle2, Aler
 import Alert from '../components/common/Alert';
 import StatusBadge from '../components/common/StatusBadge';
 import { healthApi } from '../api/health';
+import { modeApi } from '../api/research';
 import { BASE_URL } from '../api/client';
 
 const formatUptime = (seconds) => {
@@ -18,6 +19,30 @@ export default function Settings() {
   const [health, setHealth] = useState(null);
   const [details, setDetails] = useState(null);
   const [checking, setChecking] = useState(false);
+  const [mode, setMode] = useState(null);
+  const [modeBusy, setModeBusy] = useState(false);
+
+  const loadMode = async () => {
+    try {
+      setMode(await modeApi.get());
+    } catch {
+      setMode(null); // mode endpoint unreachable — non-critical
+    }
+  };
+
+  const switchMode = async (target) => {
+    if (!target || target === mode?.mode) return;
+    setModeBusy(true);
+    try {
+      setMode(await modeApi.set(target));
+    } catch (err) {
+      setHealth({ status: 'error', error: err.message });
+    } finally {
+      setModeBusy(false);
+    }
+  };
+
+  useEffect(() => { loadMode(); }, []);
 
   const checkConnectivity = async () => {
     setChecking(true);
@@ -148,6 +173,41 @@ export default function Settings() {
           </div>
         </div>
       )}
+
+      {/* Application Mode (Research vs Demo) */}
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">
+            <Activity size={18} style={{ color: 'var(--cyan-neon)' }} />
+            Application Mode
+          </div>
+          {mode && <StatusBadge status={mode.mode === 'research' ? 'healthy' : 'pending'} label={mode.mode} />}
+        </div>
+        {mode ? (
+          <div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '10px' }}>{mode.description}</p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {mode.modes.map((m) => (
+                <button
+                  key={m}
+                  className={`btn ${mode.mode === m ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => switchMode(m)}
+                  disabled={modeBusy || mode.mode === m}
+                >
+                  {m === 'research' ? 'Research Mode' : 'Demo Mode'}
+                </button>
+              ))}
+            </div>
+            {mode.mode === 'demo' && (
+              <div style={{ fontSize: '0.74rem', color: 'var(--status-warning)', marginTop: '8px' }}>
+                Demo Mode is read-only: mutating endpoints return 403. Switch back to Research Mode to run experiments.
+              </div>
+            )}
+          </div>
+        ) : (
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Mode service unavailable.</p>
+        )}
+      </div>
 
       {/* Engine Parameters */}
       <div className="card">

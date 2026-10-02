@@ -1,0 +1,343 @@
+{
+  "analysis": {
+    "drift_slope_per_run": 0.22,
+    "hash_identical_across_runs": false,
+    "interpretation": "Metric variation across repeated runs; non-zero drift slope indicates run-order dependence (seed variation or version drift).",
+    "metric_stats": {
+      "comparison.cryptographic_overhead.canonicalization_and_sha256_us": {
+        "ci95_high": 14.199399,
+        "ci95_low": 13.013934,
+        "max": 13.88,
+        "mean": 13.606667,
+        "min": 13.44,
+        "n": 3,
+        "std": 0.238607
+      },
+      "comparison.logistic_regression.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 3,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 3,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.inference_time_us": {
+        "ci95_high": 16.917568,
+        "ci95_low": -2.157568,
+        "max": 11.78,
+        "mean": 7.38,
+        "min": 4.71,
+        "n": 3,
+        "std": 3.839388
+      },
+      "comparison.logistic_regression.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 3,
+        "std": 0.0
+      },
+      "comparison.logistic_regression.training_time_ms": {
+        "ci95_high": 37.668385,
+        "ci95_low": 8.118282,
+        "max": 29.71,
+        "mean": 22.893333,
+        "min": 18.76,
+        "n": 3,
+        "std": 5.947759
+      },
+      "comparison.random_forest.accuracy": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 3,
+        "std": 0.0
+      },
+      "comparison.random_forest.f1_score": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 3,
+        "std": 0.0
+      },
+      "comparison.random_forest.inference_time_us": {
+        "ci95_high": 92.196594,
+        "ci95_low": 77.670073,
+        "max": 87.94,
+        "mean": 84.933333,
+        "min": 82.1,
+        "n": 3,
+        "std": 2.923856
+      },
+      "comparison.random_forest.roc_auc": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 3,
+        "std": 0.0
+      },
+      "comparison.random_forest.training_time_ms": {
+        "ci95_high": 71.319386,
+        "ci95_low": 64.80728,
+        "max": 69.46,
+        "mean": 68.063333,
+        "min": 66.86,
+        "n": 3,
+        "std": 1.310738
+      }
+    },
+    "runs": 3,
+    "runtime_ms": {
+      "ci95_high": 412.024226,
+      "ci95_low": 319.735974,
+      "max": 386.5516,
+      "mean": 365.8801,
+      "min": 350.5879,
+      "n": 3,
+      "std": 18.57551
+    }
+  },
+  "challenge_id": "CH-20260923-194435",
+  "completed_at": "2026-09-23T14:14:36Z",
+  "configuration": {
+    "n_samples": 300,
+    "random_state": 42
+  },
+  "created_at": "2026-09-23T14:14:35Z",
+  "dataset": "Synthetic-scope protocol data (labelled synthetic).",
+  "evidence_hash": "6d5ff2dced99aa148803221fb7882ccab6e5c8e854bd43e9c9c41f5ff69a9842",
+  "experiment": "EXP-D",
+  "hypothesis": "EXP-D completes with stable macro-F1 across repeated runs.",
+  "kind": "standard",
+  "reproducibility_package": "available via /research/reproducibility/export",
+  "runs": [
+    {
+      "comparison": {
+        "cryptographic_overhead": {
+          "canonicalization_and_sha256_us": 13.44,
+          "relative_overhead_pct": "~14.1% of total pipeline"
+        },
+        "logistic_regression": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 11.78,
+          "model_type": "Logistic Regression (Linear Baseline)",
+          "roc_auc": 1.0,
+          "training_time_ms": 29.71
+        },
+        "random_forest": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 82.1,
+          "model_type": "Random Forest (Non-linear Ensemble)",
+          "roc_auc": 1.0,
+          "training_time_ms": 69.46
+        }
+      },
+      "configuration_hash": "3728c352658c0bb4675e5177df72feafc52f2d140e0729e6c99ac1a10d4fdadf",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-D",
+      "result_hash": "b4f0b64956b50c0bfb5b3c45261f08dbcd68fc969b902b05ff53a2f8d00e6c0a",
+      "status": "COMPLETED",
+      "title": "Model Architecture & Runtime Overhead Comparison",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "Random Forest F1 score from EXP-D.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "comparison": {
+        "cryptographic_overhead": {
+          "canonicalization_and_sha256_us": 13.5,
+          "relative_overhead_pct": "~13.7% of total pipeline"
+        },
+        "logistic_regression": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 4.71,
+          "model_type": "Logistic Regression (Linear Baseline)",
+          "roc_auc": 1.0,
+          "training_time_ms": 20.21
+        },
+        "random_forest": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 84.76,
+          "model_type": "Random Forest (Non-linear Ensemble)",
+          "roc_auc": 1.0,
+          "training_time_ms": 67.87
+        }
+      },
+      "configuration_hash": "3728c352658c0bb4675e5177df72feafc52f2d140e0729e6c99ac1a10d4fdadf",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-D",
+      "result_hash": "68bbf7e42bac0a9addde8b958b2f92b7c1dd962497f026b74ea3f3614797d4f8",
+      "status": "COMPLETED",
+      "title": "Model Architecture & Runtime Overhead Comparison",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "Random Forest F1 score from EXP-D.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "comparison": {
+        "cryptographic_overhead": {
+          "canonicalization_and_sha256_us": 13.88,
+          "relative_overhead_pct": "~13.6% of total pipeline"
+        },
+        "logistic_regression": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 5.65,
+          "model_type": "Logistic Regression (Linear Baseline)",
+          "roc_auc": 1.0,
+          "training_time_ms": 18.76
+        },
+        "random_forest": {
+          "accuracy": 1.0,
+          "f1_score": 1.0,
+          "inference_time_us": 87.94,
+          "model_type": "Random Forest (Non-linear Ensemble)",
+          "roc_auc": 1.0,
+          "training_time_ms": 66.86
+        }
+      },
+      "configuration_hash": "3728c352658c0bb4675e5177df72feafc52f2d140e0729e6c99ac1a10d4fdadf",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-D",
+      "result_hash": "f94e9a0773f608a005cd552e71ad7ee223235896b19e13cdf71d4d28059fde7a",
+      "status": "COMPLETED",
+      "title": "Model Architecture & Runtime Overhead Comparison",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "Random Forest F1 score from EXP-D.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    }
+  ],
+  "seed": 42,
+  "status": "COMPLETED",
+  "title": "EXP-D runtime variation"
+}

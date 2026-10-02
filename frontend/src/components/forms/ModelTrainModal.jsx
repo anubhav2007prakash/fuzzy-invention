@@ -9,6 +9,8 @@ export default function ModelTrainModal({ isOpen, onClose, datasets = [], onTrai
   const [modelName, setModelName] = useState('Sentinel-RF-Classifier');
   const [testSize, setTestSize] = useState(0.2);
   const [randomState, setRandomState] = useState(42);
+  const [calibrationMethod, setCalibrationMethod] = useState('none');
+  const [calibrationFraction, setCalibrationFraction] = useState(0.2);
   const [isTraining, setIsTraining] = useState(false);
   const [error, setError] = useState(null);
 
@@ -26,6 +28,10 @@ export default function ModelTrainModal({ isOpen, onClose, datasets = [], onTrai
       dataset_id: datasetId,
       model_type: modelType,
       name: modelName || `${modelType}-${Date.now()}`,
+      train_ratio: 1 - parseFloat(testSize),
+      random_seed: parseInt(randomState, 10),
+      calibration_method: calibrationMethod === 'none' ? null : calibrationMethod,
+      calibration_fraction: parseFloat(calibrationFraction),
       hyperparameters: {
         test_size: parseFloat(testSize),
         random_state: parseInt(randomState, 10),
@@ -134,8 +140,37 @@ export default function ModelTrainModal({ isOpen, onClose, datasets = [], onTrai
           </div>
         </div>
 
+        <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label">Probability Calibration</label>
+            <select
+              className="form-select"
+              value={calibrationMethod}
+              onChange={(e) => setCalibrationMethod(e.target.value)}
+            >
+              <option value="none">Disabled (raw estimator output)</option>
+              <option value="sigmoid">Sigmoid (Platt scaling)</option>
+              <option value="isotonic">Isotonic (requires ≥1,000 calibration rows)</option>
+            </select>
+          </div>
+          {calibrationMethod !== 'none' && (
+            <div className="form-group">
+              <label className="form-label">Calibration Share of Training Partition</label>
+              <input
+                type="number"
+                step="0.05"
+                min="0.05"
+                max="0.45"
+                className="form-input"
+                value={calibrationFraction}
+                onChange={(e) => setCalibrationFraction(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+
         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-          * Evaluates precision, recall, F1, ROC-AUC, FPR, and persists trained weights into Model Registry.
+          * Calibration is fit on a reserved training subset and evaluated on the held-out test split. Isotonic requires at least 1,000 calibration observations. These scores are not guarantees of real-world confidence.
         </div>
       </form>
     </Modal>

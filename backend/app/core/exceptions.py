@@ -114,3 +114,23 @@ class IntegrityVerificationError(SentinelCryptException):
 class CryptographicLedgerError(SentinelCryptException):
     def __init__(self, message: str):
         super().__init__(message, "LEDGER_ERROR")
+
+
+# ── System & Infrastructure Failures ──────────────────────────────────────────
+
+class DatabaseUnavailableError(SentinelCryptException):
+    def __init__(self, message: str = "Database connection unavailable or operational failure."):
+        super().__init__(message, "DATABASE_UNAVAILABLE")
+
+
+class DependencyUnavailableError(SentinelCryptException):
+    def __init__(self, dependency: str, message: str | None = None):
+        msg = message or f"Required dependency '{dependency}' is unavailable."
+        super().__init__(msg, "DEPENDENCY_UNAVAILABLE")
+        self.dependency = dependency
+
+
+class ConfigurationError(SentinelCryptException):
+    def __init__(self, message: str):
+        super().__init__(message, "CONFIGURATION_ERROR")
+

@@ -21,6 +21,7 @@ import Alert from '../components/common/Alert';
 import DatasetUploadModal from '../components/forms/DatasetUploadModal';
 import ModelTrainModal from '../components/forms/ModelTrainModal';
 
+import { formatPercent, resolveConfidence, isAttackClass, modelArchitecture } from '../utils/format';
 import { datasetsApi } from '../api/datasets';
 import { modelsApi } from '../api/models';
 import { predictionsApi } from '../api/predictions';
@@ -74,7 +75,7 @@ export default function Dashboard() {
       const result = await auditApi.verifyChain({ verify_entire_chain: true });
       setVerifyResult(result);
     } catch (err) {
-      setVerifyResult({ is_valid: false, error: err.message });
+      setVerifyResult({ verified: false, message: err.message });
     } finally {
       setIsVerifying(false);
     }
@@ -84,7 +85,7 @@ export default function Dashboard() {
     return <Loader text="Synchronizing autonomous runtime state..." size="lg" />;
   }
 
-  const isChainValid = auditStatus?.is_valid !== false;
+  const isChainValid = auditStatus?.is_intact !== false;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
@@ -231,16 +232,16 @@ export default function Dashboard() {
       {/* Verification Result Banner */}
       {verifyResult && (
         <Alert
-          type={verifyResult.is_valid ? 'success' : 'danger'}
-          title={verifyResult.is_valid ? 'Ledger Chain Mathematically Verified' : 'Cryptographic Verification Failure'}
+          type={verifyResult.verified ? 'success' : 'danger'}
+          title={verifyResult.verified ? 'Ledger Chain Mathematically Verified' : 'Cryptographic Verification Failure'}
         >
-          {verifyResult.is_valid ? (
+          {verifyResult.verified ? (
             <div>
-              Verified <strong>{verifyResult.records_verified}</strong> consecutive blocks. All forward-linkage SHA-256 hashes matched expected canonical state with 0 corrupted records.
+              Verified <strong>{verifyResult.checked_records}</strong> consecutive blocks. All forward-linkage SHA-256 hashes matched expected canonical state with 0 corrupted records.
             </div>
           ) : (
             <div>
-              Verification error at sequence #{verifyResult.corrupted_sequence_number || 'Unknown'}: {verifyResult.details || verifyResult.error || 'Hash mismatch detected.'}
+              Verification error: {verifyResult.message || 'Hash mismatch detected.'}
             </div>
           )}
         </Alert>
@@ -300,17 +301,16 @@ export default function Dashboard() {
                 </thead>
                 <tbody>
                   {predictions.slice(0, 5).map((p) => {
-                    const isAttack = p.predicted_class === 1 || p.predicted_class === 'ATTACK';
                     return (
-                      <tr key={p.id}>
+                      <tr key={p.prediction_id}>
                         <td style={{ fontSize: '0.74rem' }}>
                           {p.created_at ? new Date(p.created_at).toLocaleTimeString() : 'Recent'}
                         </td>
                         <td>
-                          <StatusBadge status={isAttack ? 'ATTACK' : 'BENIGN'} />
+                          <StatusBadge status={isAttackClass(p.predicted_class) ? 'ATTACK' : 'BENIGN'} />
                         </td>
                         <td style={{ fontWeight: '600', fontFamily: 'monospace', color: '#ffffff' }}>
-                          {p.probability !== undefined ? `${(p.probability * 100).toFixed(1)}%` : '—'}
+                          {formatPercent(resolveConfidence(p))}
                         </td>
                         <td>
                           <Link to="/audit" style={{ color: 'var(--cyan-neon)', textDecoration: 'none', fontSize: '0.72rem' }}>
@@ -361,13 +361,13 @@ export default function Dashboard() {
                     <tr key={m.id}>
                       <td style={{ fontWeight: '600', color: '#ffffff' }}>{m.name}</td>
                       <td>
-                        <StatusBadge status={m.model_type} />
+                        <StatusBadge status={modelArchitecture(m)} />
                       </td>
                       <td style={{ fontFamily: 'monospace' }}>
-                        {m.accuracy !== undefined ? `${(m.accuracy * 100).toFixed(2)}%` : '—'}
+                        {formatPercent(m.metrics?.accuracy, 2)}
                       </td>
                       <td style={{ fontFamily: 'monospace', color: 'var(--cyan-neon)' }}>
-                        {m.f1_score !== undefined ? `${(m.f1_score * 100).toFixed(2)}%` : '—'}
+                        {formatPercent(m.metrics?.f1_macro, 2)}
                       </td>
                     </tr>
                   ))}

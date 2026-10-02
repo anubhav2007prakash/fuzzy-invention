@@ -1,5 +1,6 @@
 """RFC 8785 / JCS-compliant Deterministic Canonical JSON Serializer."""
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any
 
@@ -10,8 +11,15 @@ def canonical_serializer(obj: Any) -> Any:
             obj = obj.replace(tzinfo=timezone.utc)
         return obj.isoformat()
     if isinstance(obj, float):
-        # Format floats to 6 decimal places to prevent platform precision divergence
-        return round(obj, 6)
+        # NaN/Infinity are NOT valid JSON (RFC 8785): silently emitting the
+        # non-standard `NaN` token would make digests unverifiable outside
+        # Python and divergence-prone.  Reject them loudly instead.
+        if not math.isfinite(obj):
+            raise ValueError(
+                f"Non-finite float {obj!r} cannot be canonically serialized "
+                "(NaN/Infinity are not JSON)."
+            )
+        return obj
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 def canonicalize(payload: dict) -> str:
@@ -21,5 +29,6 @@ def canonicalize(payload: dict) -> str:
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
+        allow_nan=False,
         default=canonical_serializer
     )

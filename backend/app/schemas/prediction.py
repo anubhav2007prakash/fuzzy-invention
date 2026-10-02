@@ -7,7 +7,7 @@ class PredictionRequest(BaseModel):
     model_id: str
     features: Dict[str, Union[float, int, str]]
     confidence_threshold: Optional[float] = Field(None, ge=0.0, le=1.0,
-        description="Minimum probability threshold. Below this, predicted_class is 'UNCERTAIN'.")
+        description="Legacy-named minimum maximum-class-probability threshold. Below it, predicted_class is 'UNCERTAIN'; this threshold is not a real-world confidence guarantee.")
 
 class BatchPredictionRequest(BaseModel):
     model_id: str
@@ -20,7 +20,10 @@ class PredictionResponse(BaseModel):
     predicted_class: str
     prediction_label: int
     probabilities: Optional[Dict[str, float]] = None
-    confidence: Optional[float] = None
+    confidence: Optional[float] = Field(
+        None,
+        description="Legacy alias for the maximum class probability when thresholding is requested; not a guarantee of real-world confidence.",
+    )
     is_uncertain: bool = False
     input_hash: str
     latency_ms: float

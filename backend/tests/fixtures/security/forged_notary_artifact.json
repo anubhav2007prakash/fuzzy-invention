@@ -1,0 +1,13 @@
+{
+ "artifact_type": "sentinelcrypt.research-artifact.v1",
+ "protocol_version": 1,
+ "payload": {
+  "claim": "F1 = 1.0 on UNSW-NB15",
+  "experiment": "EXP-FABRICATED"
+ },
+ "payload_hash": "da5231d14b87027526043bd8f5aea6e3b14746d192ded24de39208a561a4ebfb",
+ "digest_algorithm": "SHA-256",
+ "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+ "algorithm": "Ed25519",
+ "public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
+}

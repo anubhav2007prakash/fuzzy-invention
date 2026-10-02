@@ -1,4 +1,4 @@
-.PHONY: setup install test run-backend run-frontend demo docker-up docker-down clean
+.PHONY: setup install test run-backend run-frontend demo sentinel benchmark challenge metamorphic docker-up docker-down clean
 
 setup:
 	python scripts/setup_project.py
@@ -18,6 +18,18 @@ test:
 
 demo:
 	python scripts/demo_golden_path.py
+
+sentinel:
+	python scripts/sentinel.py list
+
+benchmark:
+	python scripts/sentinel.py benchmark run
+
+challenge:
+	python scripts/sentinel.py challenge run --preset Q1
+
+metamorphic:
+	python scripts/metamorphic_harness.py
 
 docker-up:
 	docker-compose up --build -d

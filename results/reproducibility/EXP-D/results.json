@@ -1,0 +1,106 @@
+{
+  "comparison": {
+    "cryptographic_overhead": {
+      "canonicalization_and_sha256_us": 13.84,
+      "relative_overhead_pct": "~8.6% of total pipeline"
+    },
+    "logistic_regression": {
+      "accuracy": 1.0,
+      "f1_score": 1.0,
+      "inference_time_us": 7.34,
+      "model_type": "Logistic Regression (Linear Baseline)",
+      "roc_auc": 1.0,
+      "training_time_ms": 21.59
+    },
+    "random_forest": {
+      "accuracy": 1.0,
+      "f1_score": 1.0,
+      "inference_time_us": 147.4,
+      "model_type": "Random Forest (Non-linear Ensemble)",
+      "roc_auc": 1.0,
+      "training_time_ms": 83.35
+    }
+  },
+  "configuration_hash": "fc2c434bc8e10e5e8efe193da8d52f6c2c89525fccce81d37e190a8f08326d5f",
+  "evidence_package": {
+    "status": "not_exported"
+  },
+  "experiment_id": "EXP-D",
+  "reproducibility": {
+    "numpy_version": "2.4.3",
+    "pandas_version": "3.0.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.3",
+    "shap_version": "0.52.0",
+    "sklearn_version": "1.8.0",
+    "timestamp_utc": "2026-09-24T07:12:32Z"
+  },
+  "result_hash": "c40faec461211e7d1c3161fbae1f3bfdef29c8529609f7e8f95ef2113d0f9d60",
+  "run_manifest": {
+    "configuration": {
+      "n_samples": 200,
+      "random_state": 42
+    },
+    "dataset_disclaimer": "Current benchmark results use deterministic synthetic network-flow data with controlled properties. They are not real UNSW-NB15 or CICIDS2017 measurements.",
+    "dataset_scope": "synthetic",
+    "environment": {
+      "numpy_version": "2.4.3",
+      "pandas_version": "3.0.3",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python_version": "3.14.3",
+      "shap_version": "0.52.0",
+      "sklearn_version": "1.8.0"
+    },
+    "experiment_id": "EXP-D",
+    "generated_at": "2026-09-24T07:12:32Z",
+    "git": {
+      "branch": "master",
+      "commit": "a5d5120",
+      "dirty_worktree": true
+    },
+    "random_seed": 42,
+    "result_artifact": "exp_d_model_comparison.json",
+    "status": "COMPLETED",
+    "title": "Model Architecture & Runtime Overhead Comparison"
+  },
+  "status": "COMPLETED",
+  "timestamp": "2026-09-24T07:12:32Z",
+  "title": "Model Architecture & Runtime Overhead Comparison",
+  "trust_profile": [
+    {
+      "explanation": "Detection trust is derived only from available F1 metrics.",
+      "label": "Detection",
+      "measurement": "Random Forest F1 score from EXP-D.",
+      "status": "measured",
+      "value": 1.0
+    },
+    {
+      "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+      "label": "Explanation Stability",
+      "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+      "status": "not_applicable",
+      "value": null
+    },
+    {
+      "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+      "label": "Evidence Integrity",
+      "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+      "status": "not_applicable",
+      "value": null
+    },
+    {
+      "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+      "label": "Reproducibility",
+      "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+      "status": "measured",
+      "value": 1.0
+    },
+    {
+      "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+      "label": "Data Quality",
+      "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+      "status": "not_evaluated",
+      "value": null
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight, Key, Link as LinkIcon, Database } from 'lucide-react';
+import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { isAttackClass } from '../../utils/format';
 
 export default function HashChainVisual({ records = [] }) {
   const displayRecords = records.slice(-4); // show last 4 records
@@ -18,7 +19,6 @@ export default function HashChainVisual({ records = [] }) {
         {displayRecords.map((rec, index) => {
           const isGenesis = rec.sequence_number === 1;
           const shortRecordHash = rec.record_hash ? `${rec.record_hash.substring(0, 8)}...${rec.record_hash.substring(rec.record_hash.length - 6)}` : 'GENESIS';
-          const shortPayloadHash = rec.payload_hash ? `${rec.payload_hash.substring(0, 8)}...` : 'NONE';
 
           return (
             <React.Fragment key={rec.id || rec.sequence_number || index}>
@@ -45,14 +45,9 @@ export default function HashChainVisual({ records = [] }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.72rem' }}>
                   <div>
                     <span style={{ color: 'var(--text-muted)' }}>Class: </span>
-                    <span style={{ color: rec.predicted_class === 1 || rec.predicted_class === 'ATTACK' ? 'var(--status-attack)' : 'var(--status-benign)', fontWeight: '600' }}>
-                      {rec.predicted_class === 1 ? 'ATTACK' : 'BENIGN'}
+                    <span style={{ color: isAttackClass(rec.payload?.predicted_class) ? 'var(--status-attack)' : 'var(--status-benign)', fontWeight: '600' }}>
+                      {rec.payload?.predicted_class ?? (isGenesis ? 'GENESIS' : '—')}
                     </span>
-                  </div>
-
-                  <div>
-                    <span style={{ color: 'var(--text-muted)' }}>Payload SHA: </span>
-                    <span className="hash-pill" style={{ fontSize: '0.68rem' }}>{shortPayloadHash}</span>
                   </div>
 
                   <div>

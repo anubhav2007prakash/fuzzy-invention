@@ -36,7 +36,12 @@ from backend.app.cryptography.hash_chain import (
     calculate_record_hash,
 )
 from backend.app.cryptography.hashing import hash_file, sha256_hash
+from backend.app.cryptography.versioning import (
+    EXPERIMENT_SCHEMA_VERSION,
+    version_metadata,
+)
 from backend.app.cryptography.verifier import verify_ledger
+from backend.app.ml.data.synthetic import generate_flow_dataset
 from backend.app.ml.models.random_forest import RandomForestDetector
 from backend.app.xai.shap_explainer import SHAPExplainer
 from backend.app.xai.stability import ExplanationStabilityAnalyzer
@@ -49,7 +54,62 @@ EXPERIMENT_RESULT_FILES = {
     "EXP-B": "exp_b_xai_stability.json",
     "EXP-C": "exp_c_ledger_integrity.json",
     "EXP-D": "exp_d_model_comparison.json",
+    "EXP-F": "exp_f_ablation_v2.json",
+    "EXP-G": "exp_g_integrity_comparison.json",
+    "EXP-H": "exp_h_xai_agreement.json",
+    "EXP-ROBUSTNESS": "exp_robustness.json",
+    "EXP-CALIBRATION": "exp_calibration.json",
 }
+
+EXPERIMENT_META = [
+    {"id": "EXP-A", "title": "Cross-Dataset Generalization Gap"},
+    {"id": "EXP-B", "title": "XAI Attribution Stability under Perturbation"},
+    {"id": "EXP-C", "title": "Cryptographic Audit Integrity & Tamper Attacks"},
+    {"id": "EXP-D", "title": "Model Architecture & Runtime Overhead Comparison"},
+    {"id": "EXP-F", "title": "Component Ablation Study"},
+    {"id": "EXP-G", "title": "Cryptographic Integrity Architecture Comparison"},
+    {"id": "EXP-H", "title": "Cross-Method Explanation Agreement"},
+    {"id": "EXP-ROBUSTNESS", "title": "Bounded-Perturbation Sensitivity Measurements"},
+    {"id": "EXP-CALIBRATION", "title": "Prediction Probability Calibration Laboratory"},
+]
+
+KNOWN_EXPERIMENT_IDS = tuple(meta["id"] for meta in EXPERIMENT_META)
+
+
+def result_artifact_name(exp_id: str) -> Optional[str]:
+    """Result JSON filename for a core experiment or a registered plugin experiment."""
+    normalized = exp_id.upper().strip()
+    if normalized in EXPERIMENT_RESULT_FILES:
+        return EXPERIMENT_RESULT_FILES[normalized]
+    plugin = _lookup_experiment_plugin(normalized)
+    if plugin is None:
+        return None
+    from backend.app.plugins.host import plugin_result_filename
+
+    plugin_exp_id = str(plugin.metadata.get("experiment_id") or plugin.name).upper()
+    return plugin_result_filename(plugin_exp_id)
+
+
+def _lookup_experiment_plugin(exp_id: str):
+    from backend.app.plugins.registry import get_registry
+
+    registry = get_registry()
+    key = str(exp_id).strip().lower()
+    info = registry.get("experiment", key)
+    if info is not None:
+        return info
+    want = str(exp_id).strip().upper()
+    for item in registry.list("experiment"):
+        meta_id = str(item.get("metadata", {}).get("experiment_id") or "").upper()
+        if meta_id == want or item["name"].upper() == want:
+            return registry.get("experiment", item["name"])
+    return None
+
+
+def _list_experiment_plugins():
+    from backend.app.plugins.registry import get_registry
+
+    return get_registry().list("experiment")
 
 RESEARCH_ENVELOPE_KEYS = {
     "run_manifest",
@@ -57,6 +117,10 @@ RESEARCH_ENVELOPE_KEYS = {
     "configuration_hash",
     "trust_profile",
     "evidence_package",
+    # wall-clock fields are NOT scientific content: identical configurations in
+    # identical environments must produce identical result hashes (reproducibility)
+    "timestamp",
+    "reproducibility",
 }
 
 SYNTHETIC_DATA_DISCLAIMER = (
@@ -99,66 +163,20 @@ class ExperimentService:
         random_state: int = 42,
         shift_scale: float = 1.0,
         attack_ratio: float = 0.3,
+        missing_rate: float = 0.0,
     ) -> pd.DataFrame:
-        """Generate realistic synthetic network flow dataset matching UNSW/CICIDS schema."""
-        rng = np.random.RandomState(random_state)
-        n_attacks = int(n_samples * attack_ratio)
-        n_benign = n_samples - n_attacks
+        """Generate synthetic network-flow data (delegates to the shared generator).
 
-        # Benign features
-        benign_dur = rng.exponential(scale=0.5 * shift_scale, size=n_benign)
-        benign_spkts = rng.poisson(lam=10 * shift_scale, size=n_benign) + 1
-        benign_dpkts = rng.poisson(lam=12 * shift_scale, size=n_benign)
-        benign_sbytes = benign_spkts * rng.randint(60, 500, size=n_benign)
-        benign_dbytes = benign_dpkts * rng.randint(60, 1500, size=n_benign)
-        benign_rate = (benign_spkts + benign_dpkts) / (benign_dur + 0.001)
-        benign_sttl = rng.choice([64, 128], size=n_benign)
-        benign_dttl = rng.choice([64, 128], size=n_benign)
-        benign_sload = (benign_sbytes * 8) / (benign_dur + 0.001)
-        benign_dload = (benign_dbytes * 8) / (benign_dur + 0.001)
-
-        # Attack features
-        atk_dur = rng.exponential(scale=0.05 * shift_scale, size=n_attacks)
-        atk_spkts = rng.poisson(lam=45 * shift_scale, size=n_attacks) + 10
-        atk_dpkts = rng.poisson(lam=2 * shift_scale, size=n_attacks)
-        atk_sbytes = atk_spkts * rng.randint(40, 100, size=n_attacks)
-        atk_dbytes = atk_dpkts * rng.randint(0, 100, size=n_attacks)
-        atk_rate = (atk_spkts + atk_dpkts) / (atk_dur + 0.0001)
-        atk_sttl = rng.choice([254, 255], size=n_attacks)
-        atk_dttl = rng.choice([0, 32], size=n_attacks)
-        atk_sload = (atk_sbytes * 8) / (atk_dur + 0.0001)
-        atk_dload = (atk_dbytes * 8) / (atk_dur + 0.0001)
-
-        df_benign = pd.DataFrame({
-            "dur": benign_dur,
-            "spkts": benign_spkts,
-            "dpkts": benign_dpkts,
-            "sbytes": benign_sbytes,
-            "dbytes": benign_dbytes,
-            "rate": benign_rate,
-            "sttl": benign_sttl,
-            "dttl": benign_dttl,
-            "sload": benign_sload,
-            "dload": benign_dload,
-            "label": 0,
-        })
-
-        df_attack = pd.DataFrame({
-            "dur": atk_dur,
-            "spkts": atk_spkts,
-            "dpkts": atk_dpkts,
-            "sbytes": atk_sbytes,
-            "dbytes": atk_dbytes,
-            "rate": atk_rate,
-            "sttl": atk_sttl,
-            "dttl": atk_dttl,
-            "sload": atk_sload,
-            "dload": atk_dload,
-            "label": 1,
-        })
-
-        df = pd.concat([df_benign, df_attack], ignore_index=True)
-        return df.sample(frac=1.0, random_state=random_state).reset_index(drop=True)
+        Single source of truth: backend.app.ml.data.synthetic — used by tests,
+        benchmarks, and the Datasets synthetic-upload path alike.
+        """
+        return generate_flow_dataset(
+            n_samples=n_samples,
+            random_state=random_state,
+            shift_scale=shift_scale,
+            attack_ratio=attack_ratio,
+            missing_rate=missing_rate,
+        )
 
     # ─────────────────────────────────────────────────────────────────────────
     # Research Envelope: Validation, Canonical Hashes, Manifest, Trust Profile
@@ -226,7 +244,134 @@ class ExperimentService:
                 "n_samples": self._positive_int(raw.get("n_samples", 1500), "n_samples"),
                 "random_state": self._integer(raw.get("random_state", 42), "random_state"),
             }
-        raise ValueError(f"Unknown experiment ID '{exp_id}'. Must be EXP-A, EXP-B, EXP-C, or EXP-D.")
+        if normalized_id == "EXP-F":
+            variant_list = raw.get("variants")
+            if variant_list is not None and (
+                not isinstance(variant_list, list) or not variant_list
+            ):
+                raise ValueError("variants must be a non-empty list.")
+            if variant_list is not None and not all(
+                isinstance(variant, str) for variant in variant_list
+            ):
+                raise ValueError("variants must contain only strings.")
+            model_type = str(raw.get("model_type", "random_forest"))
+            if model_type not in {"random_forest", "logistic_regression"}:
+                raise ValueError(
+                    "model_type must be 'random_forest' or 'logistic_regression'."
+                )
+            sample_count = self._positive_int(raw.get("n_samples", 1200), "n_samples")
+            if sample_count < 40:
+                raise ValueError("n_samples must be at least 40 for stratified ablation.")
+            return {
+                "n_samples": sample_count,
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+                "model_type": model_type,
+                "repeats": self._positive_int(raw.get("repeats", 3), "repeats"),
+                "explanation_samples": self._positive_int(
+                    raw.get("explanation_samples", 1), "explanation_samples"
+                ),
+                **({"variants": variant_list} if variant_list else {}),
+            }
+        if normalized_id == "EXP-G":
+            sizes = raw.get("sizes")
+            if sizes is not None:
+                if not isinstance(sizes, list) or not sizes:
+                    raise ValueError("sizes must be a non-empty list of positive integers.")
+                for s in sizes:
+                    self._positive_int(s, "sizes")
+            return {
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+                **({"sizes": [int(s) for s in sizes]} if sizes else {}),
+            }
+        if normalized_id == "EXP-H":
+            levels = raw.get("noise_levels")
+            if levels is not None:
+                if not isinstance(levels, list) or not levels:
+                    raise ValueError("noise_levels must be a non-empty list.")
+                for lv in levels:
+                    try:
+                        value = float(lv)
+                    except (TypeError, ValueError):
+                        raise ValueError("noise_levels must contain only numbers.") from None
+                    if value < 0:
+                        raise ValueError("noise_levels must be non-negative.")
+            return {
+                "n_samples": self._positive_int(raw.get("n_samples", 800), "n_samples"),
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+                "top_k": self._positive_int(raw.get("top_k", 5), "top_k"),
+                "model_type": str(raw.get("model_type", "random_forest")),
+                **({"noise_levels": [float(l) for l in levels]} if levels else {}),
+            }
+        if normalized_id == "EXP-ROBUSTNESS":
+            from backend.app.research.robustness import (
+                DEFAULT_EPSILON_LEVELS,
+                MAX_EPSILON,
+                SUPPORTED_MODELS,
+            )
+
+            sample_count = self._positive_int(raw.get("n_samples", 800), "n_samples")
+            if sample_count < 40 or sample_count > 10000:
+                raise ValueError("n_samples must be between 40 and 10000.")
+            n_probe = self._positive_int(raw.get("n_probe", 12), "n_probe")
+            if n_probe > 100:
+                raise ValueError("n_probe must not exceed 100.")
+            n_repeats = self._positive_int(raw.get("n_repeats", 3), "n_repeats")
+            if n_repeats > 10:
+                raise ValueError("n_repeats must not exceed 10.")
+            levels = self._positive_float_list(
+                raw.get("epsilon_levels", DEFAULT_EPSILON_LEVELS),
+                "epsilon_levels",
+            )
+            if len(levels) > 10:
+                raise ValueError("epsilon_levels must contain at most 10 conditions.")
+            if len(set(levels)) != len(levels):
+                raise ValueError("epsilon_levels must contain unique values.")
+            if any(level > MAX_EPSILON for level in levels):
+                raise ValueError(
+                    f"epsilon_levels must not exceed the maximum of {MAX_EPSILON}."
+                )
+            model_type = str(raw.get("model_type", "random_forest"))
+            if model_type not in SUPPORTED_MODELS:
+                raise ValueError(
+                    "model_type must be 'random_forest' or 'logistic_regression'."
+                )
+            with_explanations = raw.get("with_explanations", True)
+            if not isinstance(with_explanations, bool):
+                raise ValueError("with_explanations must be a boolean.")
+            return {
+                "n_samples": sample_count,
+                "n_probe": n_probe,
+                "epsilon_levels": levels,
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+                "n_repeats": n_repeats,
+                "model_type": model_type,
+                "with_explanations": with_explanations,
+            }
+        if normalized_id == "EXP-CALIBRATION":
+            method = raw.get("method", "sigmoid")
+            if not isinstance(method, str) or method not in {"sigmoid", "isotonic"}:
+                raise ValueError("method must be 'sigmoid' or 'isotonic'.")
+            sample_count = self._positive_int(raw.get("n_samples", 1200), "n_samples")
+            if sample_count < 400 or sample_count > 20000:
+                raise ValueError("n_samples must be between 400 and 20000.")
+            return {
+                "n_samples": sample_count,
+                "method": method,
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+            }
+        if _lookup_experiment_plugin(normalized_id) is not None:
+            sample_count = self._positive_int(raw.get("n_samples", 400), "n_samples")
+            if sample_count < 40 or sample_count > 10000:
+                raise ValueError("n_samples must be between 40 and 10000.")
+            return {
+                "n_samples": sample_count,
+                "random_state": self._integer(raw.get("random_state", 42), "random_state"),
+                "model_type": str(raw.get("model_type", "random_forest")),
+            }
+        raise ValueError(
+            f"Unknown experiment ID '{exp_id}'. Must be one of: "
+            f"{', '.join(KNOWN_EXPERIMENT_IDS)} (or a registered experiment plugin)."
+        )
 
     @staticmethod
     def _strip_research_envelope(result: Dict[str, Any]) -> Dict[str, Any]:
@@ -267,12 +412,13 @@ class ExperimentService:
         exp_id = result["experiment_id"]
         reproducibility = result.get("reproducibility") or _reproducibility_metadata()
         return {
+            "experiment_schema_version": EXPERIMENT_SCHEMA_VERSION,
             "experiment_id": exp_id,
             "title": result.get("title"),
             "status": result.get("status"),
             "configuration": config,
             "random_seed": config.get("random_state"),
-            "result_artifact": EXPERIMENT_RESULT_FILES.get(exp_id),
+            "result_artifact": result_artifact_name(exp_id),
             "dataset_scope": "synthetic",
             "dataset_disclaimer": SYNTHETIC_DATA_DISCLAIMER,
             "git": self.get_git_metadata(),
@@ -285,6 +431,7 @@ class ExperimentService:
                 "shap_version": reproducibility.get("shap_version"),
             },
             "generated_at": reproducibility.get("timestamp_utc") or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "plugins": result.get("plugins") or [],
         }
 
     @staticmethod
@@ -348,8 +495,10 @@ class ExperimentService:
 
     def export_evidence_package(self, exp_id: str, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         normalized_id = exp_id.upper().strip()
-        if normalized_id not in EXPERIMENT_RESULT_FILES:
-            raise ValueError(f"Unknown experiment ID '{exp_id}'. Must be EXP-A, EXP-B, EXP-C, or EXP-D.")
+        if result_artifact_name(normalized_id) is None:
+            raise ValueError(
+                f"Unknown experiment ID '{exp_id}'. Must be a core experiment or a registered plugin."
+            )
 
         result = self.run_experiment_by_id(normalized_id, config=config) if config else self.get_experiment_by_id(normalized_id)
         if result is None:
@@ -360,6 +509,7 @@ class ExperimentService:
 
         metrics_payload = result.get("metrics") or result.get("comparison") or {}
         verification_report = {
+            **version_metadata(),
             "experiment_id": normalized_id,
             "status": result.get("status"),
             "result_hash": result.get("result_hash"),
@@ -369,7 +519,12 @@ class ExperimentService:
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
 
+        package_manifest = {
+            **version_metadata(),
+            "experiment_id": normalized_id,
+        }
         files_to_write = {
+            "package-manifest.json": package_manifest,
             "experiment.json": result,
             "metrics.json": metrics_payload,
             "reproducibility-manifest.json": result.get("run_manifest", {}),
@@ -393,11 +548,15 @@ class ExperimentService:
         for file_path in sorted(package_dir.iterdir(), key=lambda p: p.name):
             if file_path.is_file():
                 file_hashes[file_path.name] = hash_file(str(file_path))
+        with open(package_dir / "file-hashes.json", "w", encoding="utf-8") as f:
+            json.dump(file_hashes, f, indent=2, sort_keys=True)
+        file_hashes["file-hashes.json"] = hash_file(str(package_dir / "file-hashes.json"))
 
         package_hash = sha256_hash(canonicalize({"files": file_hashes}))
         files = sorted(file_hashes.keys())
 
         response = {
+            **version_metadata(),
             "experiment_id": normalized_id,
             "package_path": str(package_dir.as_posix()),
             "files": files,
@@ -405,6 +564,76 @@ class ExperimentService:
             "package_hash": package_hash,
             "generated_at": verification_report["generated_at"],
         }
+        if self.db is not None:
+            from backend.app.services.lineage_service import (
+                ArtifactLineageService,
+                artifact_digest,
+            )
+
+            result_payload = {
+                "experiment_id": normalized_id,
+                "result_hash": result.get("result_hash"),
+                "configuration_hash": result.get("configuration_hash"),
+            }
+            experiment_artifact_id = (
+                f"research-experiment:{normalized_id}:{artifact_digest(result_payload)[:12]}"
+            )
+            result_artifact_id = (
+                f"research-results:{normalized_id}:{artifact_digest(metrics_payload)[:12]}"
+            )
+            report_digest = artifact_digest(verification_report)
+            report_artifact_id = f"verification-report:{normalized_id}:{report_digest[:12]}"
+            package_artifact_id = f"evidence-package:{normalized_id}:{package_hash[:12]}"
+            ArtifactLineageService(self.db).record_chain([
+                {
+                    "artifact_id": experiment_artifact_id,
+                    "artifact_type": "experiment",
+                    "version": str(EXPERIMENT_SCHEMA_VERSION),
+                    "sha256": artifact_digest(result_payload),
+                    "experiment_id": normalized_id,
+                    "metadata": {
+                        **result_payload,
+                        "digest_scope": "canonical stored experiment identity and hashes",
+                    },
+                },
+                {
+                    "artifact_id": result_artifact_id,
+                    "artifact_type": "results",
+                    "parent_artifact_id": experiment_artifact_id,
+                    "version": str(EXPERIMENT_SCHEMA_VERSION),
+                    "sha256": artifact_digest(metrics_payload),
+                    "experiment_id": normalized_id,
+                    "metadata": {
+                        "result_hash": result.get("result_hash"),
+                        "digest_scope": "canonical experiment metrics/comparison payload",
+                    },
+                },
+                {
+                    "artifact_id": report_artifact_id,
+                    "artifact_type": "report",
+                    "parent_artifact_id": result_artifact_id,
+                    "version": str(EXPERIMENT_SCHEMA_VERSION),
+                    "sha256": report_digest,
+                    "experiment_id": normalized_id,
+                    "metadata": {
+                        "file_name": "verification-report.json",
+                        "digest_scope": "canonical verification report before package export",
+                    },
+                },
+                {
+                    "artifact_id": package_artifact_id,
+                    "artifact_type": "evidence_package",
+                    "parent_artifact_id": report_artifact_id,
+                    "version": str(EXPERIMENT_SCHEMA_VERSION),
+                    "sha256": package_hash,
+                    "experiment_id": normalized_id,
+                    "metadata": {
+                        "experiment_id": normalized_id,
+                        "files": files,
+                        "digest_scope": "SHA-256 over the exported package file inventory",
+                    },
+                },
+            ])
         result["evidence_package"] = {
             "status": "exported",
             "package_path": response["package_path"],
@@ -432,6 +661,21 @@ class ExperimentService:
         if exp_id == "EXP-C":
             detection = metrics.get("tamper_detection_rate")
             return {"experiment_id": exp_id, "status": "COMPLETED", "highlight": f"Tamper detection rate {detection}"}
+        if exp_id == "EXP-F":
+            deltas = metrics.get("deltas_vs_full", {})
+            parts = [f"{k}: ΔF1 {v.get('f1', 0):+.4f}" for k, v in deltas.items()]
+            return {"experiment_id": exp_id, "status": "COMPLETED",
+                    "highlight": "; ".join(parts) or "No ablation deltas available"}
+        if exp_id == "EXP-G":
+            tamper = metrics.get("tamper_detection", {})
+            return {"experiment_id": exp_id, "status": "COMPLETED",
+                    "highlight": f"Mutation detected: {tamper.get('mutation_all_sizes')}; "
+                                 f"Omission detected: {tamper.get('omission_all_sizes')}"}
+        if exp_id == "EXP-H":
+            clean = metrics.get("clean_agreement", {})
+            return {"experiment_id": exp_id, "status": "COMPLETED",
+                    "highlight": f"Mean top-k overlap {clean.get('mean_topk_overlap')}; "
+                                 f"mean Spearman {clean.get('mean_spearman')}"}
         if exp_id == "EXP-D":
             rf_f1 = comparison.get("random_forest", {}).get("f1_score")
             lr_f1 = comparison.get("logistic_regression", {}).get("f1_score")
@@ -469,10 +713,8 @@ class ExperimentService:
                 "SentinelCrypt AI is a research prototype, not a production IDS.",
             ],
             "future_work": [
-                "Real UNSW-NB15 to CICIDS2017 feature mapping.",
-                "Statistical significance testing for repeated runs.",
-                "Out-of-distribution and unknown attack research modes.",
-                "Digitally signed research result publication packages.",
+                "Register real UNSW-NB15/CICIDS2017 captures to replace synthetic proxies.",
+                "Independent multi-lab reproduction of the benchmark protocol.",
             ],
         }
 
@@ -905,16 +1147,9 @@ class ExperimentService:
     # ─────────────────────────────────────────────────────────────────────────
 
     def list_experiments(self) -> List[Dict[str, Any]]:
-        """List summary status of all 4 research experiments."""
-        exp_meta = [
-            {"id": "EXP-A", "title": "Cross-Dataset Generalization Gap"},
-            {"id": "EXP-B", "title": "XAI Attribution Stability under Perturbation"},
-            {"id": "EXP-C", "title": "Cryptographic Audit Integrity & Tamper Attacks"},
-            {"id": "EXP-D", "title": "Model Architecture & Runtime Overhead Comparison"},
-        ]
-
+        """List summary status of all registered research experiments."""
         results = []
-        for meta in exp_meta:
+        for meta in EXPERIMENT_META:
             file_path = RESULTS_DIR / EXPERIMENT_RESULT_FILES[meta["id"]]
             if file_path.exists():
                 try:
@@ -930,12 +1165,32 @@ class ExperimentService:
                 "status": "READY_TO_RUN",
                 "metrics": None,
             })
+        for item in _list_experiment_plugins():
+            exp_id = str(item.get("metadata", {}).get("experiment_id") or item["name"]).upper()
+            if any(row.get("experiment_id") == exp_id for row in results):
+                continue
+            filename = result_artifact_name(exp_id)
+            file_path = RESULTS_DIR / filename if filename else None
+            if file_path is not None and file_path.exists():
+                try:
+                    with open(file_path, "r", encoding="utf-8") as handle:
+                        results.append(json.load(handle))
+                        continue
+                except Exception:
+                    pass
+            results.append({
+                "experiment_id": exp_id,
+                "title": item.get("description") or exp_id,
+                "status": "READY_TO_RUN",
+                "metrics": None,
+                "plugin": item["name"],
+            })
         return results
 
     def get_experiment_by_id(self, exp_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve stored experiment details or run if not yet executed."""
         normalized_id = exp_id.upper().strip()
-        filename = EXPERIMENT_RESULT_FILES.get(normalized_id)
+        filename = result_artifact_name(normalized_id)
         if not filename:
             return None
 
@@ -955,13 +1210,135 @@ class ExperimentService:
     def run_experiment_by_id(self, exp_id: str, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Trigger execution of specified experiment."""
         normalized_id = exp_id.upper().strip()
-        if normalized_id == "EXP-A":
-            return self.run_exp_a(config)
-        elif normalized_id == "EXP-B":
-            return self.run_exp_b(config)
-        elif normalized_id == "EXP-C":
-            return self.run_exp_c(config)
-        elif normalized_id == "EXP-D":
-            return self.run_exp_d(config)
-        else:
-            raise ValueError(f"Unknown experiment ID '{exp_id}'. Must be EXP-A, EXP-B, EXP-C, or EXP-D.")
+        runners = {
+            "EXP-A": self.run_exp_a,
+            "EXP-B": self.run_exp_b,
+            "EXP-C": self.run_exp_c,
+            "EXP-D": self.run_exp_d,
+            "EXP-F": self.run_exp_f,
+            "EXP-G": self.run_exp_g,
+            "EXP-H": self.run_exp_h,
+            "EXP-ROBUSTNESS": self.run_exp_robustness,
+            "EXP-CALIBRATION": self.run_exp_calibration,
+        }
+        runner = runners.get(normalized_id)
+        if runner is not None:
+            return runner(config)
+        plugin = _lookup_experiment_plugin(normalized_id)
+        if plugin is None:
+            raise ValueError(
+                f"Unknown experiment ID '{exp_id}'. Must be one of: "
+                f"{', '.join(KNOWN_EXPERIMENT_IDS)} (or a registered experiment plugin)."
+            )
+        from backend.app.plugins.host import PluginHost
+
+        return PluginHost().run_experiment(self, plugin.name, config)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # EXP-F: Component Ablation Study
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def run_exp_f(self, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Execute EXP-F: which pipeline components contribute what (item: ablation)."""
+        from backend.app.research.ablation import run_ablation
+
+        cfg = self.validate_experiment_config("EXP-F", config or {})
+        result = run_ablation(
+            n_samples=cfg.get("n_samples", 1200),
+            seed=cfg.get("random_state", 42),
+            variants=cfg.get("variants"),
+            model_type=cfg.get("model_type", "random_forest"),
+            repeats=cfg.get("repeats", 3),
+            explanation_samples=cfg.get("explanation_samples", 1),
+        )
+        result = self.enrich_research_result(result, cfg)
+        out_file = RESULTS_DIR / EXPERIMENT_RESULT_FILES["EXP-F"]
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        return result
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # EXP-G: Hash Chain vs Merkle Integrity Architecture Comparison
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def run_exp_g(self, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Execute EXP-G: measured head-to-head of hash chain vs Merkle tree."""
+        from backend.app.research.integrity_comparison import run_integrity_comparison
+
+        cfg = config or {}
+        result = run_integrity_comparison(
+            sizes=cfg.get("sizes"),
+            seed=cfg.get("random_state", 42),
+        )
+        result = self.enrich_research_result(result, cfg)
+        out_file = RESULTS_DIR / EXPERIMENT_RESULT_FILES["EXP-G"]
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        return result
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # EXP-H: Cross-Method Explanation Agreement
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def run_exp_h(self, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Execute EXP-H: SHAP vs permutation vs built-in importance agreement."""
+        from backend.app.research.xai_agreement_study import run_xai_agreement
+
+        cfg = config or {}
+        result = run_xai_agreement(
+            n_samples=cfg.get("n_samples", 800),
+            top_k=cfg.get("top_k", 5),
+            seed=cfg.get("random_state", 42),
+            noise_levels=cfg.get("noise_levels"),
+            model_type=cfg.get("model_type", "random_forest"),
+        )
+        result = self.enrich_research_result(result, cfg)
+        out_file = RESULTS_DIR / EXPERIMENT_RESULT_FILES["EXP-H"]
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        return result
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # EXP-ROBUSTNESS: Offline bounded-perturbation sensitivity measurements
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def run_exp_robustness(
+        self, config: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Run the offline synthetic-feature sensitivity experiment."""
+        from backend.app.research.robustness import run_robustness_study
+
+        cfg = self.validate_experiment_config("EXP-ROBUSTNESS", config or {})
+        result = run_robustness_study(
+            n_samples=cfg["n_samples"],
+            n_probe=cfg["n_probe"],
+            epsilon_levels=cfg["epsilon_levels"],
+            seed=cfg["random_state"],
+            with_explanations=cfg["with_explanations"],
+            n_repeats=cfg["n_repeats"],
+            model_type=cfg["model_type"],
+            experiment_id="EXP-ROBUSTNESS",
+        )
+        result = self.enrich_research_result(result, cfg)
+        out_file = RESULTS_DIR / EXPERIMENT_RESULT_FILES["EXP-ROBUSTNESS"]
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        return result
+
+    def run_exp_calibration(
+        self, config: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Run a synthetic calibration study using disjoint data partitions."""
+        from backend.app.research.calibration_lab import run_calibration_study
+
+        cfg = self.validate_experiment_config("EXP-CALIBRATION", config or {})
+        result = run_calibration_study(
+            n_samples=cfg["n_samples"],
+            method=cfg["method"],
+            seed=cfg["random_state"],
+        )
+        result = self.enrich_research_result(result, cfg)
+        out_file = RESULTS_DIR / EXPERIMENT_RESULT_FILES["EXP-CALIBRATION"]
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        return result

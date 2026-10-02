@@ -1,4 +1,5 @@
 """Unit tests for SentinelCrypt Research Experiments (EXP-A to EXP-D)."""
+import json
 from pathlib import Path
 import pytest
 from backend.app.services.experiment_service import ExperimentService
@@ -49,9 +50,12 @@ def test_exp_d_execution(service):
 
 def test_list_and_get_experiments(service):
     experiments = service.list_experiments()
-    assert len(experiments) == 4
     ids = {e["experiment_id"] for e in experiments}
-    assert ids == {"EXP-A", "EXP-B", "EXP-C", "EXP-D"}
+    assert {
+        "EXP-A", "EXP-B", "EXP-C", "EXP-D", "EXP-F", "EXP-G", "EXP-H",
+        "EXP-ROBUSTNESS", "EXP-CALIBRATION",
+    } == ids
+    assert len(experiments) == 9
 
     exp_a = service.get_experiment_by_id("EXP-A")
     assert exp_a is not None
@@ -113,10 +117,16 @@ def test_export_evidence_package_writes_expected_files(service):
     package = service.export_evidence_package("EXP-C")
 
     assert package["experiment_id"] == "EXP-C"
+    assert package["evidence_format_version"] == 2
+    assert package["protocol_version"] == 1
+    assert package["schema_version"] == 1
+    assert package["experiment_schema_version"] == 1
+    assert package["research_artifact_version"] == 1
     assert package["package_hash"]
     assert len(package["package_hash"]) == 64
     assert package["package_path"].endswith("results/evidence/EXP-C")
     assert set(package["files"]) == {
+        "package-manifest.json",
         "README.md",
         "experiment.json",
         "metrics.json",
@@ -129,6 +139,15 @@ def test_export_evidence_package_writes_expected_files(service):
     assert (package_dir / "metrics.json").exists()
     assert (package_dir / "reproducibility-manifest.json").exists()
     assert (package_dir / "verification-report.json").exists()
+    version_manifest = json.loads(
+        (package_dir / "package-manifest.json").read_text(encoding="utf-8")
+    )
+    assert version_manifest["evidence_format_version"] == 2
+    assert version_manifest["protocol_version"] == 1
+    assert version_manifest["schema_version"] == 1
+    assert version_manifest["experiment_schema_version"] == 1
+    assert version_manifest["research_artifact_version"] == 1
+    assert (package_dir / "verification-report.json").exists()
     assert (package_dir / "README.md").exists()
 
 def test_presentation_summary_contains_research_narrative_and_limitations(service):
@@ -138,8 +157,6 @@ def test_presentation_summary_contains_research_narrative_and_limitations(servic
     assert "Random Forest" in summary["models"]
     assert "SHAP" in summary["xai_method"]
     assert "SHA-256" in summary["cryptographic_evidence"]
-    assert len(summary["experiments"]) == 4
+    assert len(summary["experiments"]) == 8
     assert "Current experiments use synthetic data." in summary["limitations"]
     assert "research prototype" in " ".join(summary["limitations"]).lower()
-
-

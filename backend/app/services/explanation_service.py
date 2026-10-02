@@ -19,6 +19,12 @@ from backend.app.core.exceptions import (
     PredictionNotFoundError,
 )
 from backend.app.core.logging import get_logger
+from backend.app.db.models import (
+    ArtifactLineage,
+    Explanation,
+    ModelRecord,
+    Prediction,
+)
 from backend.app.db.repositories.explanation_repository import ExplanationRepository
 from backend.app.db.repositories.model_repository import ModelRepository
 from backend.app.db.repositories.prediction_repository import PredictionRepository
@@ -178,6 +184,7 @@ class ExplanationService:
             base_value=shap_result.base_value,
             stability_score=stability_score,
         )
+        self._record_lineage(db_explanation, prediction, model_record)
 
         # 9. Build response
         return self._build_response(db_explanation)
@@ -275,8 +282,101 @@ class ExplanationService:
             base_value=shap_result.base_value,
             stability_score=stability_score,
         )
+        self._record_lineage(db_explanation, prediction, model_record)
 
         return self._build_response(db_explanation)
+
+    def _record_lineage(
+        self,
+        explanation: Explanation,
+        prediction: Prediction,
+        model_record: ModelRecord,
+    ) -> None:
+        from backend.app.services.lineage_service import ArtifactLineageService, artifact_digest
+
+        prediction_parent = f"prediction:{prediction.id}"
+        prediction_lineage_exists = (
+            self.db.get(ArtifactLineage, prediction_parent) is not None
+        )
+        explanation_payload = {
+            "prediction_id": prediction.id,
+            "method": explanation.method,
+            "top_features": explanation.top_features,
+            "base_value": explanation.base_value,
+            "stability_score": explanation.stability_score,
+        }
+        explanation_digest = artifact_digest(explanation_payload)
+        experiment_id = model_record.experiment_id
+        experiment_artifact_id = f"experiment-analysis:{explanation.id}"
+        results_id = f"results:explanation:{explanation.id}"
+        report_id = f"report:explanation:{explanation.id}"
+        experiment_payload = {
+            "prediction_id": prediction.id,
+            "explanation_id": explanation.id,
+            "experiment_id": experiment_id,
+        }
+        results_payload = {
+            "predicted_class": prediction.predicted_class,
+            "input_hash": prediction.input_hash,
+            "explanation": explanation_payload,
+        }
+        report_payload = {
+            "prediction_id": prediction.id,
+            "explanation_id": explanation.id,
+            "results_sha256": artifact_digest(results_payload),
+            "summary": "Prediction and explanation report",
+        }
+        nodes = [
+            {
+                "artifact_id": f"explanation:{explanation.id}",
+                "artifact_type": "explanation",
+                "parent_artifact_id": (
+                    prediction_parent if prediction_lineage_exists else None
+                ),
+                "created_at": explanation.created_at,
+                "version": explanation.explanation_version,
+                "sha256": explanation_digest,
+                "experiment_id": experiment_id,
+                "metadata": {
+                    **explanation_payload,
+                    "digest_scope": "canonical explanation record",
+                    **({} if prediction_lineage_exists else {
+                        "lineage_warning": "Prediction has no lineage record.",
+                    }),
+                },
+            },
+            {
+                "artifact_id": experiment_artifact_id,
+                "artifact_type": "experiment",
+                "parent_artifact_id": f"explanation:{explanation.id}",
+                "version": "1",
+                "sha256": artifact_digest(experiment_payload),
+                "experiment_id": experiment_id,
+                "metadata": {
+                    **experiment_payload,
+                    "scope": "prediction explanation analysis",
+                },
+            },
+            {
+                "artifact_id": results_id,
+                "artifact_type": "results",
+                "parent_artifact_id": experiment_artifact_id,
+                "version": "1",
+                "sha256": artifact_digest(results_payload),
+                "experiment_id": experiment_id,
+                "metadata": results_payload,
+            },
+            {
+                "artifact_id": report_id,
+                "artifact_type": "report",
+                "parent_artifact_id": results_id,
+                "version": "1",
+                "sha256": artifact_digest(report_payload),
+                "experiment_id": experiment_id,
+                "metadata": report_payload,
+            },
+        ]
+        ArtifactLineageService(self.db).record_chain(nodes)
 
     # ------------------------------------------------------------------
     # Public: get_explanation

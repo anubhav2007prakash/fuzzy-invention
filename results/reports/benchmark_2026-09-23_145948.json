@@ -1,0 +1,289 @@
+{
+  "benchmark_id": "BENCH-2026-09-23-202948",
+  "protocol": {
+    "generated_at": "2026-09-23T14:59:48Z",
+    "metrics": [
+      "f1",
+      "f1_macro",
+      "precision",
+      "recall",
+      "pr_auc",
+      "roc_auc",
+      "ece",
+      "brier",
+      "inference_latency_ms",
+      "train/infer peak memory MB",
+      "explanation_stability",
+      "explanation_time_ms",
+      "OOD delta_f1",
+      "ledger append/verify us per block",
+      "repeatability spread"
+    ],
+    "model": "RandomForestClassifier(n_estimators=50, max_depth=8)",
+    "n_samples_per_source": 800,
+    "repeats": 2,
+    "seed": 42
+  },
+  "report_hash": "e491183651c583bc2056d27d6f5132e60df9a9b73fce60814228e03197e2bca3",
+  "sources": [
+    {
+      "generalization_gap": {
+        "delta_f1": 0.0,
+        "delta_f1_macro": 0.0,
+        "delta_pr_auc": 0.0
+      },
+      "in_distribution": {
+        "accuracy": 1.0,
+        "brier": 0.0,
+        "ece": 0.0,
+        "explanation_stability": 1.0,
+        "explanation_time_ms": 3.313,
+        "f1": 1.0,
+        "f1_macro": 1.0,
+        "infer_peak_memory_mb": 0.062,
+        "inference_latency_ms": 0.061345,
+        "inference_latency_ms_batch": 12.269,
+        "n_test": 200,
+        "n_train": 600,
+        "pr_auc": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "roc_auc": 1.0,
+        "train_peak_memory_mb": 0.179,
+        "train_time_ms": 479.887
+      },
+      "ledger_overhead": {
+        "append_us_per_block": 36.61,
+        "build_total_ms": 3.661,
+        "chain_valid": true,
+        "n_blocks": 100,
+        "verify_total_ms": 1.189,
+        "verify_us_per_block": 11.89
+      },
+      "out_of_distribution": {
+        "accuracy": 1.0,
+        "brier": 0.00042,
+        "ece": 0.002875,
+        "f1": 1.0,
+        "f1_macro": 1.0,
+        "partition": "shifted partition of unsw_nb15",
+        "pr_auc": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "roc_auc": 1.0
+      },
+      "provenance": {
+        "id": "unsw_nb15",
+        "name": "UNSW-NB15 (distribution-matched synthetic proxy)",
+        "note": "UNSW-NB15-like feature distributions. Not real UNSW-NB15 capture data.",
+        "origin": "synthetic_proxy",
+        "rows_used": 800,
+        "sha256": "0f970888ca1f255e0ee8f78ecd008dace23e51d50e989a2f50e3d7e06648580b"
+      },
+      "reproducibility": {
+        "bit_identical_across_runs": true,
+        "deterministic_seed": 42,
+        "f1_macro_series": [
+          1.0,
+          1.0
+        ],
+        "f1_series": [
+          1.0,
+          1.0
+        ],
+        "f1_spread": 0.0,
+        "identity_scope": "deterministic quality metrics (F1, macro-F1, precision/recall, PR-AUC, ROC-AUC, ECE, Brier, explanation stability); latency and memory are wall-clock measurements and are never folded into the identity claim.",
+        "repeats": 2
+      },
+      "source": "unsw_nb15"
+    },
+    {
+      "generalization_gap": {
+        "delta_f1": 0.0,
+        "delta_f1_macro": 0.0,
+        "delta_pr_auc": 0.0
+      },
+      "in_distribution": {
+        "accuracy": 1.0,
+        "brier": 5e-05,
+        "ece": 0.0005,
+        "explanation_stability": 1.0,
+        "explanation_time_ms": 2.6,
+        "f1": 1.0,
+        "f1_macro": 1.0,
+        "infer_peak_memory_mb": 0.06,
+        "inference_latency_ms": 0.056139,
+        "inference_latency_ms_batch": 11.2278,
+        "n_test": 200,
+        "n_train": 600,
+        "pr_auc": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "roc_auc": 1.0,
+        "train_peak_memory_mb": 0.16,
+        "train_time_ms": 454.191
+      },
+      "ledger_overhead": {
+        "append_us_per_block": 27.33,
+        "build_total_ms": 2.733,
+        "chain_valid": true,
+        "n_blocks": 100,
+        "verify_total_ms": 2.321,
+        "verify_us_per_block": 23.21
+      },
+      "out_of_distribution": {
+        "accuracy": 1.0,
+        "brier": 0.00301,
+        "ece": 0.016075,
+        "f1": 1.0,
+        "f1_macro": 1.0,
+        "partition": "shifted partition of cicids2017",
+        "pr_auc": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "roc_auc": 1.0
+      },
+      "provenance": {
+        "id": "cicids2017",
+        "name": "CICIDS2017 (distribution-matched synthetic proxy)",
+        "note": "CICIDS2017-like class imbalance and flow durations. Not real CICIDS2017 data.",
+        "origin": "synthetic_proxy",
+        "rows_used": 800,
+        "sha256": "2da52303693e1b644f8a004bc363c3d2aace4a22c0e7573069b5a502bf8b6ef7"
+      },
+      "reproducibility": {
+        "bit_identical_across_runs": true,
+        "deterministic_seed": 42,
+        "f1_macro_series": [
+          1.0,
+          1.0
+        ],
+        "f1_series": [
+          1.0,
+          1.0
+        ],
+        "f1_spread": 0.0,
+        "identity_scope": "deterministic quality metrics (F1, macro-F1, precision/recall, PR-AUC, ROC-AUC, ECE, Brier, explanation stability); latency and memory are wall-clock measurements and are never folded into the identity claim.",
+        "repeats": 2
+      },
+      "source": "cicids2017"
+    },
+    {
+      "generalization_gap": {
+        "delta_f1": 0.0,
+        "delta_f1_macro": 0.0,
+        "delta_pr_auc": 0.0
+      },
+      "in_distribution": {
+        "accuracy": 1.0,
+        "brier": 8e-06,
+        "ece": 0.0002,
+        "explanation_stability": 1.0,
+        "explanation_time_ms": 2.307,
+        "f1": 1.0,
+        "f1_macro": 1.0,
+        "infer_peak_memory_mb": 0.06,
+        "inference_latency_ms": 0.046638,
+        "inference_latency_ms_batch": 9.3276,
+        "n_test": 200,
+        "n_train": 600,
+        "pr_auc": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "roc_auc": 1.0,
+        "train_peak_memory_mb": 0.159,
+        "train_time_ms": 474.925
+      },
+      "ledger_overhead": {
+        "append_us_per_block": 42.84,
+        "build_total_ms": 4.284,
+        "chain_valid": true,
+        "n_blocks": 100,
+        "verify_total_ms": 1.593,
+        "verify_us_per_block": 15.93
+      },
+      "out_of_distribution": {
+        "accuracy": 1.0,
+        "brier": 0.001345,
+        "ece": 0.00725,
+        "f1": 1.0,
+        "f1_macro": 1.0,
+        "partition": "shifted partition of controlled",
+        "pr_auc": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "roc_auc": 1.0
+      },
+      "provenance": {
+        "id": "controlled",
+        "name": "Controlled test data (labelled synthetic)",
+        "note": "Synthetic network-flow data with controlled properties. Not real network telemetry (not real UNSW-NB15 or CICIDS2017 captures).",
+        "origin": "synthetic_controlled",
+        "rows_used": 800,
+        "sha256": "4d65040111968e7e5bdcae7b0b1ea1a1c5cabac84de45d6157d0aaeb0d32dc4b"
+      },
+      "reproducibility": {
+        "bit_identical_across_runs": true,
+        "deterministic_seed": 42,
+        "f1_macro_series": [
+          1.0,
+          1.0
+        ],
+        "f1_series": [
+          1.0,
+          1.0
+        ],
+        "f1_spread": 0.0,
+        "identity_scope": "deterministic quality metrics (F1, macro-F1, precision/recall, PR-AUC, ROC-AUC, ECE, Brier, explanation stability); latency and memory are wall-clock measurements and are never folded into the identity claim.",
+        "repeats": 2
+      },
+      "source": "controlled"
+    }
+  ],
+  "status": "COMPLETED",
+  "summary": {
+    "ece": {
+      "max": 0.0005,
+      "mean": 0.000233,
+      "min": 0.0
+    },
+    "explanation_stability": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "f1": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "f1_macro": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "inference_latency_ms": {
+      "max": 0.061345,
+      "mean": 0.054707,
+      "min": 0.046638
+    },
+    "max_repeatability_spread": 0.0,
+    "mean_ood_f1_drop": 0.0,
+    "pr_auc": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "precision": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "recall": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "sources_evaluated": 3
+  }
+}

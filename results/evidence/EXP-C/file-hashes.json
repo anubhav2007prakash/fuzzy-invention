@@ -1,0 +1,9 @@
+{
+  "README.md": "f54c6828b32f3e47b063acc0f1b41d1a5896844fd77af401dee11d57bf9ae75e",
+  "experiment.json": "ede722fc79328cb7234c311a5d43c0354179ed8f5ee0145b0f7b92554adccb97",
+  "file-hashes.json": "cb76c0a1a0f32435752e003dfae38272fea446c9dc8077d251681aab7962c504",
+  "metrics.json": "7eeaab884a254c19f4c96ec3daef86c37c026f7786a7ba8d09b440ec18683adc",
+  "package-manifest.json": "3c3f0d718b3de115630c0cef013f3f50940f48e5e294fd4dac9d5a5a901c85b7",
+  "reproducibility-manifest.json": "30e186f38ec61a7895bcbb7d51c7af82d0b9868e469e3117cef2497f99b65643",
+  "verification-report.json": "0a59a620befcb4360874d1e8a44239563f332ab40f891d08029b11b51dee0dc9"
+}

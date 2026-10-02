@@ -1,0 +1,13 @@
+{
+  "README.md": "d064ae38c45caa08f7314affcd4ca06bcd34655ddc2014365271b7a01edeb540",
+  "config.yaml": "8cfbfa77ce31f02d77f4e93571e449bf67fe4e210023be855d4926cbbb5c2427",
+  "dataset-manifest.json": "ed0b375bc03868dd2897b62503af59cf02b1d31e3dfba95cee21acd77005c731",
+  "environment.json": "b24fe2e4600d76628d90fec55a30bf0499c4c53a5b33341bc071e5e4b6627e31",
+  "evidence/experiment.json": "102174cd553ee089f59070cc091c9e32939e271cbd215bb4f6f34dc89e28aaeb",
+  "metrics.csv": "1fc9b87f866cf68b55fbc163b577c5b94cfb6c4873cf9f02d11031517d147b09",
+  "model-metadata.json": "14941685156d85ce667a50b75ca50129c0eb8d5d5bb27dd50097ef7f4fa24d4f",
+  "plots/README.md": "5e9b8ee15cf7587011fd042f23e7f4b1078c56e5fdbcc1ff460e484eb58422a4",
+  "reproduction-instructions.md": "10f15fcd3e9eb496cf3e51c7376aa2592b9ce9fd0ea7adf483dc2c1db7057b53",
+  "results.json": "102174cd553ee089f59070cc091c9e32939e271cbd215bb4f6f34dc89e28aaeb",
+  "verification-report.json": "4019e0a6abb4659d3a49c3258723de0a5d08e9c4250b2c1d0bc13131477fe160"
+}

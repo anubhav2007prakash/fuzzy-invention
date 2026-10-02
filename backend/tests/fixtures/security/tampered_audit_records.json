@@ -1,0 +1,29 @@
+{
+ "protocol_version": 1,
+ "records": [
+  {
+   "sequence_number": 1,
+   "payload_json": "{\"action\":\"predict\",\"label\":\"benign\",\"seq\":1}",
+   "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+   "record_hash": "7718080bba376115ada33e46dae698027c0b206137c2f8f8fce682f754805bca"
+  },
+  {
+   "sequence_number": 2,
+   "payload_json": "{\"action\":\"predict\",\"label\":\"attack\",\"seq\":2}",
+   "previous_hash": "7718080bba376115ada33e46dae698027c0b206137c2f8f8fce682f754805bca",
+   "record_hash": "8d8e295abc8aab9626cbca9798e2009d3b1cfdcee9a5094387749e5e846b7e31"
+  },
+  {
+   "sequence_number": 3,
+   "payload_json": "{\"action\":\"predict\",\"label\":\"attack\",\"seq\":3}",
+   "previous_hash": "8d8e295abc8aab9626cbca9798e2009d3b1cfdcee9a5094387749e5e846b7e31",
+   "record_hash": "7268f497c02b8d41a5f9852b4f76f0e638fca7f9c3e96d7d76a8dc66be93a128"
+  },
+  {
+   "sequence_number": 4,
+   "payload_json": "{\"action\":\"predict\",\"label\":\"attack\",\"seq\":4}",
+   "previous_hash": "7268f497c02b8d41a5f9852b4f76f0e638fca7f9c3e96d7d76a8dc66be93a128",
+   "record_hash": "233240506cd70fbab33e1c4e5d18f1f6bd2dfbd2533f5f603cb768aa2bb44cab"
+  }
+ ]
+}

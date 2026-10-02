@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.app.core.config import settings
+from backend.app.cryptography.hashing import hash_file
 from backend.app.db.database import Base, get_db
 from backend.app.db.repositories.dataset_repository import DatasetRepository
 from backend.app.main import app
@@ -77,7 +78,7 @@ class TestPredictionAPI(unittest.TestCase):
                 name="Prediction API Dataset",
                 source="api_fixtures",
                 file_name=self.csv_filename,
-                file_hash="hash_api_pred_999",
+                file_hash=hash_file(str(self.data_raw_dir / self.csv_filename)),
                 row_count=n_rows,
                 feature_count=4,
                 target_column="label",

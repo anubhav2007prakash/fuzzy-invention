@@ -1,0 +1,45 @@
+{
+  "configuration_hash": "fc2c434bc8e10e5e8efe193da8d52f6c2c89525fccce81d37e190a8f08326d5f",
+  "experiment_id": "EXP-D",
+  "generated_at": "2026-09-24T07:12:32Z",
+  "protocol_version": 1,
+  "result_hash": "c40faec461211e7d1c3161fbae1f3bfdef29c8529609f7e8f95ef2113d0f9d60",
+  "status": "COMPLETED",
+  "trust_profile": [
+    {
+      "explanation": "Detection trust is derived only from available F1 metrics.",
+      "label": "Detection",
+      "measurement": "Random Forest F1 score from EXP-D.",
+      "status": "measured",
+      "value": 1.0
+    },
+    {
+      "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+      "label": "Explanation Stability",
+      "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+      "status": "not_applicable",
+      "value": null
+    },
+    {
+      "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+      "label": "Evidence Integrity",
+      "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+      "status": "not_applicable",
+      "value": null
+    },
+    {
+      "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+      "label": "Reproducibility",
+      "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+      "status": "measured",
+      "value": 1.0
+    },
+    {
+      "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+      "label": "Data Quality",
+      "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+      "status": "not_evaluated",
+      "value": null
+    }
+  ]
+}

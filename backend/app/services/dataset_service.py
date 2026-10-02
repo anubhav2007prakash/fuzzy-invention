@@ -127,6 +127,46 @@ class DatasetService:
         ]
 
         dataset = self.repo.create(obj_in, features=features)
+        from backend.app.services.lineage_service import (
+            ArtifactLineageService,
+            artifact_digest,
+        )
+
+        ArtifactLineageService(self.db).record_chain([
+            {
+                "artifact_id": f"dataset:{dataset.id}:raw",
+                "artifact_type": "raw_dataset",
+                "sha256": file_hash,
+                "version": "1",
+                "metadata": {
+                    "dataset_id": dataset.id,
+                    "file_name": dataset.file_name,
+                    "digest_scope": "stored raw file bytes",
+                },
+            },
+            {
+                "artifact_id": f"dataset:{dataset.id}:validated",
+                "artifact_type": "validated_dataset",
+                "parent_artifact_id": f"dataset:{dataset.id}:raw",
+                "sha256": artifact_digest({
+                    "validation_status": dataset.validation_status,
+                    "row_count": dataset.row_count,
+                    "feature_count": dataset.feature_count,
+                    "target_column": dataset.target_column,
+                    "label_distribution": report.label_distribution,
+                }),
+                "version": "1",
+                "metadata": {
+                    "dataset_id": dataset.id,
+                    "validation_status": dataset.validation_status,
+                    "row_count": dataset.row_count,
+                    "feature_count": dataset.feature_count,
+                    "target_column": dataset.target_column,
+                    "label_distribution": report.label_distribution,
+                    "digest_scope": "canonical validation summary",
+                },
+            },
+        ])
         logger.info("Dataset registered: id=%s, rows=%d", dataset.id, report.row_count)
 
         summary = ValidationSummary(

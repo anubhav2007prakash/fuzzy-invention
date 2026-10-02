@@ -1,0 +1,563 @@
+{
+  "analysis": {
+    "metric_stats": {
+      "summary.ece.max": {
+        "ci95_high": 0.0006,
+        "ci95_low": 0.0006,
+        "max": 0.0006,
+        "mean": 0.0006,
+        "min": 0.0006,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.ece.mean": {
+        "ci95_high": 0.000355,
+        "ci95_low": 0.000355,
+        "max": 0.000355,
+        "mean": 0.000355,
+        "min": 0.000355,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.ece.min": {
+        "ci95_high": 0.000133,
+        "ci95_low": 0.000133,
+        "max": 0.000133,
+        "mean": 0.000133,
+        "min": 0.000133,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.explanation_stability.max": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.explanation_stability.mean": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.explanation_stability.min": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.f1.max": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.f1.mean": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.f1.min": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.f1_macro.max": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.f1_macro.mean": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.f1_macro.min": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.inference_latency_ms.max": {
+        "ci95_high": 0.038352,
+        "ci95_low": 0.038352,
+        "max": 0.038352,
+        "mean": 0.038352,
+        "min": 0.038352,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.inference_latency_ms.mean": {
+        "ci95_high": 0.033169,
+        "ci95_low": 0.033169,
+        "max": 0.033169,
+        "mean": 0.033169,
+        "min": 0.033169,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.inference_latency_ms.min": {
+        "ci95_high": 0.029837,
+        "ci95_low": 0.029837,
+        "max": 0.029837,
+        "mean": 0.029837,
+        "min": 0.029837,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.max_repeatability_spread": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.mean_ood_f1_drop": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.pr_auc.max": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.pr_auc.mean": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.pr_auc.min": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.precision.max": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.precision.mean": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.precision.min": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.recall.max": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.recall.mean": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.recall.min": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 1,
+        "std": 0.0
+      },
+      "summary.sources_evaluated": {
+        "ci95_high": 3.0,
+        "ci95_low": 3.0,
+        "max": 3.0,
+        "mean": 3.0,
+        "min": 3.0,
+        "n": 1,
+        "std": 0.0
+      }
+    },
+    "runs": 1,
+    "runtime_ms": {
+      "ci95_high": 2309.4896,
+      "ci95_low": 2309.4896,
+      "max": 2309.4896,
+      "mean": 2309.4896,
+      "min": 2309.4896,
+      "n": 1,
+      "std": 0.0
+    }
+  },
+  "challenge_id": "CH-20260924-013520",
+  "completed_at": "2026-09-23T20:05:22Z",
+  "configuration": {
+    "n_samples": 1200,
+    "repeats": 3,
+    "seed": 42
+  },
+  "created_at": "2026-09-23T20:05:20Z",
+  "dataset": "Preset research question (synthetic-scope protocol data).",
+  "evidence_hash": "6fa14da6f4c5e3a54c102a7f29b872f043d2953a366396d282f18a1060edf13b",
+  "experiment": "BENCHMARK",
+  "hypothesis": "ECE stays below 0.10 for the RF detector; miscalibration would signal overconfident attack scores.",
+  "kind": "standard",
+  "question": "How does model calibration affect the reliability of security predictions?",
+  "question_id": "Q3",
+  "reproducibility_package": "available via /research/reproducibility/export",
+  "runs": [
+    {
+      "benchmark_id": "BENCH-2026-09-24-013522",
+      "protocol": {
+        "generated_at": "2026-09-23T20:05:22Z",
+        "metrics": [
+          "f1",
+          "f1_macro",
+          "precision",
+          "recall",
+          "pr_auc",
+          "roc_auc",
+          "ece",
+          "brier",
+          "inference_latency_ms",
+          "train/infer peak memory MB",
+          "explanation_stability",
+          "explanation_time_ms",
+          "OOD delta_f1",
+          "ledger append/verify us per block",
+          "repeatability spread"
+        ],
+        "model": "RandomForestClassifier(n_estimators=50, max_depth=8)",
+        "n_samples_per_source": 1200,
+        "repeats": 1,
+        "seed": 42
+      },
+      "report_hash": "1441f25bbd80a06cbc8d93ad2276f80b038264d52fad412155e3c9fcd37aa392",
+      "sources": [
+        {
+          "generalization_gap": {
+            "delta_f1": 0.0,
+            "delta_f1_macro": 0.0,
+            "delta_pr_auc": 0.0
+          },
+          "in_distribution": {
+            "accuracy": 1.0,
+            "brier": 5e-06,
+            "ece": 0.000133,
+            "explanation_stability": 1.0,
+            "explanation_time_ms": 1.947,
+            "f1": 1.0,
+            "f1_macro": 1.0,
+            "infer_peak_memory_mb": 0.068,
+            "inference_latency_ms": 0.038352,
+            "inference_latency_ms_batch": 11.5056,
+            "n_test": 300,
+            "n_train": 900,
+            "pr_auc": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "roc_auc": 1.0,
+            "train_peak_memory_mb": 0.194,
+            "train_time_ms": 536.162
+          },
+          "ledger_overhead": {
+            "append_us_per_block": 25.22,
+            "build_total_ms": 2.522,
+            "chain_valid": true,
+            "n_blocks": 100,
+            "verify_total_ms": 0.977,
+            "verify_us_per_block": 9.77
+          },
+          "out_of_distribution": {
+            "accuracy": 1.0,
+            "brier": 0.000396,
+            "ece": 0.002817,
+            "f1": 1.0,
+            "f1_macro": 1.0,
+            "partition": "shifted partition of unsw_nb15",
+            "pr_auc": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "roc_auc": 1.0
+          },
+          "provenance": {
+            "id": "unsw_nb15",
+            "name": "UNSW-NB15 (distribution-matched synthetic proxy)",
+            "note": "UNSW-NB15-like feature distributions. Not real UNSW-NB15 capture data.",
+            "origin": "synthetic_proxy",
+            "rows_used": 1200,
+            "sha256": "4bdcbdbf8c04e9908bba1aee5873b97932e5ba12286bb83a473ca61dcb4ba9f2"
+          },
+          "reproducibility": {
+            "bit_identical_across_runs": true,
+            "deterministic_seed": 42,
+            "f1_macro_series": [
+              1.0
+            ],
+            "f1_series": [
+              1.0
+            ],
+            "f1_spread": 0.0,
+            "identity_scope": "deterministic quality metrics (F1, macro-F1, precision/recall, PR-AUC, ROC-AUC, ECE, Brier, explanation stability); latency and memory are wall-clock measurements and are never folded into the identity claim.",
+            "repeats": 1
+          },
+          "source": "unsw_nb15"
+        },
+        {
+          "generalization_gap": {
+            "delta_f1": 0.0,
+            "delta_f1_macro": 0.0,
+            "delta_pr_auc": 0.0
+          },
+          "in_distribution": {
+            "accuracy": 1.0,
+            "brier": 9e-06,
+            "ece": 0.000333,
+            "explanation_stability": 1.0,
+            "explanation_time_ms": 1.808,
+            "f1": 1.0,
+            "f1_macro": 1.0,
+            "infer_peak_memory_mb": 0.068,
+            "inference_latency_ms": 0.031317,
+            "inference_latency_ms_batch": 9.3951,
+            "n_test": 300,
+            "n_train": 900,
+            "pr_auc": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "roc_auc": 1.0,
+            "train_peak_memory_mb": 0.194,
+            "train_time_ms": 540.926
+          },
+          "ledger_overhead": {
+            "append_us_per_block": 22.02,
+            "build_total_ms": 2.202,
+            "chain_valid": true,
+            "n_blocks": 100,
+            "verify_total_ms": 1.049,
+            "verify_us_per_block": 10.49
+          },
+          "out_of_distribution": {
+            "accuracy": 1.0,
+            "brier": 0.001098,
+            "ece": 0.005767,
+            "f1": 1.0,
+            "f1_macro": 1.0,
+            "partition": "shifted partition of cicids2017",
+            "pr_auc": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "roc_auc": 1.0
+          },
+          "provenance": {
+            "id": "cicids2017",
+            "name": "CICIDS2017 (distribution-matched synthetic proxy)",
+            "note": "CICIDS2017-like class imbalance and flow durations. Not real CICIDS2017 data.",
+            "origin": "synthetic_proxy",
+            "rows_used": 1200,
+            "sha256": "31eac2e30c4a51d9d60e3e3bf7ca36beef2c2d4d833efdf95a0501d19ca00dea"
+          },
+          "reproducibility": {
+            "bit_identical_across_runs": true,
+            "deterministic_seed": 42,
+            "f1_macro_series": [
+              1.0
+            ],
+            "f1_series": [
+              1.0
+            ],
+            "f1_spread": 0.0,
+            "identity_scope": "deterministic quality metrics (F1, macro-F1, precision/recall, PR-AUC, ROC-AUC, ECE, Brier, explanation stability); latency and memory are wall-clock measurements and are never folded into the identity claim.",
+            "repeats": 1
+          },
+          "source": "cicids2017"
+        },
+        {
+          "generalization_gap": {
+            "delta_f1": 0.0,
+            "delta_f1_macro": 0.0,
+            "delta_pr_auc": 0.0
+          },
+          "in_distribution": {
+            "accuracy": 1.0,
+            "brier": 1.7e-05,
+            "ece": 0.0006,
+            "explanation_stability": 1.0,
+            "explanation_time_ms": 1.926,
+            "f1": 1.0,
+            "f1_macro": 1.0,
+            "infer_peak_memory_mb": 0.068,
+            "inference_latency_ms": 0.029837,
+            "inference_latency_ms_batch": 8.9511,
+            "n_test": 300,
+            "n_train": 900,
+            "pr_auc": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "roc_auc": 1.0,
+            "train_peak_memory_mb": 0.194,
+            "train_time_ms": 592.52
+          },
+          "ledger_overhead": {
+            "append_us_per_block": 22.16,
+            "build_total_ms": 2.216,
+            "chain_valid": true,
+            "n_blocks": 100,
+            "verify_total_ms": 2.019,
+            "verify_us_per_block": 20.19
+          },
+          "out_of_distribution": {
+            "accuracy": 1.0,
+            "brier": 0.000431,
+            "ece": 0.003283,
+            "f1": 1.0,
+            "f1_macro": 1.0,
+            "partition": "shifted partition of controlled",
+            "pr_auc": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "roc_auc": 1.0
+          },
+          "provenance": {
+            "id": "controlled",
+            "name": "Controlled test data (labelled synthetic)",
+            "note": "Synthetic network-flow data with controlled properties. Not real network telemetry (not real UNSW-NB15 or CICIDS2017 captures).",
+            "origin": "synthetic_controlled",
+            "rows_used": 1200,
+            "sha256": "3cc563019505b35c00aff7cadb55fca0127bcb26b90cf3afbd8ad2b1a690a35c"
+          },
+          "reproducibility": {
+            "bit_identical_across_runs": true,
+            "deterministic_seed": 42,
+            "f1_macro_series": [
+              1.0
+            ],
+            "f1_series": [
+              1.0
+            ],
+            "f1_spread": 0.0,
+            "identity_scope": "deterministic quality metrics (F1, macro-F1, precision/recall, PR-AUC, ROC-AUC, ECE, Brier, explanation stability); latency and memory are wall-clock measurements and are never folded into the identity claim.",
+            "repeats": 1
+          },
+          "source": "controlled"
+        }
+      ],
+      "status": "COMPLETED",
+      "summary": {
+        "ece": {
+          "max": 0.0006,
+          "mean": 0.000355,
+          "min": 0.000133
+        },
+        "explanation_stability": {
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0
+        },
+        "f1": {
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0
+        },
+        "f1_macro": {
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0
+        },
+        "inference_latency_ms": {
+          "max": 0.038352,
+          "mean": 0.033169,
+          "min": 0.029837
+        },
+        "max_repeatability_spread": 0.0,
+        "mean_ood_f1_drop": 0.0,
+        "pr_auc": {
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0
+        },
+        "precision": {
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0
+        },
+        "recall": {
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0
+        },
+        "sources_evaluated": 3
+      }
+    }
+  ],
+  "seed": 42,
+  "status": "COMPLETED",
+  "title": "Q3: How does model calibration affect the reliability of security predictions?"
+}

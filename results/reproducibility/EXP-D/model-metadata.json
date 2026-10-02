@@ -1,0 +1,9 @@
+{
+  "configuration": {
+    "n_samples": 200,
+    "random_state": 42
+  },
+  "experiment_id": "EXP-D",
+  "parameters": {},
+  "random_seed": 42
+}

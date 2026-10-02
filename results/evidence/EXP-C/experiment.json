@@ -1,0 +1,122 @@
+{
+  "configuration_hash": "16d2e67454664a1e119ad58049433bcbd0006c6ce55c1d1ed40d876736841617",
+  "evidence_package": {
+    "status": "not_exported"
+  },
+  "experiment_id": "EXP-C",
+  "metrics": {
+    "attacks_simulated": [
+      {
+        "attack_type": "Payload Mutation (Feature/Probability Bit-Flip)",
+        "detected": true,
+        "detected_at_sequence": 3,
+        "status": "PASSED",
+        "tampered_sequence": 3
+      },
+      {
+        "attack_type": "Previous-Hash Pointer Modification",
+        "detected": true,
+        "detected_at_sequence": 6,
+        "status": "PASSED",
+        "tampered_sequence": 6
+      },
+      {
+        "attack_type": "Block Omission (Sequence Deletion)",
+        "detected": true,
+        "detected_at_sequence": 10,
+        "status": "PASSED",
+        "tampered_sequence": 9
+      }
+    ],
+    "clean_chain_valid": true,
+    "tamper_detection_rate": "100.0%",
+    "throughput": {
+      "mean_append_time_us": 341.18,
+      "mean_verification_time_us": 66.53,
+      "total_chain_build_ms": 4.09
+    }
+  },
+  "parameters": {
+    "hash_algorithm": "SHA-256 (Canonical RFC 8785)",
+    "n_blocks_evaluated": 12
+  },
+  "reproducibility": {
+    "numpy_version": "2.4.3",
+    "pandas_version": "3.0.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.3",
+    "shap_version": "0.52.0",
+    "sklearn_version": "1.8.0",
+    "timestamp_utc": "2026-10-01T18:40:12Z"
+  },
+  "result_hash": "b05e99ffd7d423ee1fc94d6e03a6ef15349dc8a8bd2160811bd9047837435c79",
+  "run_manifest": {
+    "configuration": {
+      "n_blocks": 12,
+      "random_state": 42
+    },
+    "dataset_disclaimer": "Current benchmark results use deterministic synthetic network-flow data with controlled properties. They are not real UNSW-NB15 or CICIDS2017 measurements.",
+    "dataset_scope": "synthetic",
+    "environment": {
+      "numpy_version": "2.4.3",
+      "pandas_version": "3.0.3",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python_version": "3.14.3",
+      "shap_version": "0.52.0",
+      "sklearn_version": "1.8.0"
+    },
+    "experiment_id": "EXP-C",
+    "experiment_schema_version": 1,
+    "generated_at": "2026-10-01T18:40:12Z",
+    "git": {
+      "branch": "master",
+      "commit": "a5d5120",
+      "dirty_worktree": true
+    },
+    "plugins": [],
+    "random_seed": 42,
+    "result_artifact": "exp_c_ledger_integrity.json",
+    "status": "COMPLETED",
+    "title": "Cryptographic Audit Integrity & Adversarial Tamper Attacks (Synthetic Benchmarks)"
+  },
+  "status": "COMPLETED",
+  "timestamp": "2026-10-01T18:40:12Z",
+  "title": "Cryptographic Audit Integrity & Adversarial Tamper Attacks (Synthetic Benchmarks)",
+  "trust_profile": [
+    {
+      "explanation": "Detection trust is derived only from available F1 metrics.",
+      "label": "Detection",
+      "measurement": "EXP-C measures ledger integrity, not detection quality.",
+      "status": "not_applicable",
+      "value": null
+    },
+    {
+      "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+      "label": "Explanation Stability",
+      "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+      "status": "not_applicable",
+      "value": null
+    },
+    {
+      "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+      "label": "Evidence Integrity",
+      "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+      "status": "measured",
+      "value": 1.0
+    },
+    {
+      "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+      "label": "Reproducibility",
+      "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+      "status": "measured",
+      "value": 1.0
+    },
+    {
+      "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+      "label": "Data Quality",
+      "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+      "status": "not_evaluated",
+      "value": null
+    }
+  ]
+}

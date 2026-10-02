@@ -4,7 +4,9 @@ import StatusBadge from '../components/common/StatusBadge';
 import Loader from '../components/common/Loader';
 import Alert from '../components/common/Alert';
 import ConfusionMatrix from '../components/charts/ConfusionMatrix';
+import ReliabilityDiagram from '../components/charts/ReliabilityDiagram';
 import ModelTrainModal from '../components/forms/ModelTrainModal';
+import { formatPercent, modelArchitecture } from '../utils/format';
 import { modelsApi } from '../api/models';
 import { datasetsApi } from '../api/datasets';
 
@@ -154,10 +156,10 @@ export default function Models() {
                           {m.name}
                         </td>
                         <td>
-                          <StatusBadge status={m.model_type} />
+                          <StatusBadge status={modelArchitecture(m)} />
                         </td>
                         <td style={{ fontFamily: 'monospace', color: 'var(--cyan-neon)' }}>
-                          {m.f1_score !== undefined ? `${(m.f1_score * 100).toFixed(1)}%` : '—'}
+                          {formatPercent(m.metrics?.f1_macro)}
                         </td>
                         <td>
                           <button
@@ -185,7 +187,7 @@ export default function Models() {
                   <div className="card-title" style={{ color: 'var(--purple-accent)' }}>
                     {selectedModel.name}
                   </div>
-                  <div className="card-subtitle">Architecture: {selectedModel.model_type}</div>
+                  <div className="card-subtitle">Architecture: {modelArchitecture(selectedModel)} · Version: {selectedModel.version}</div>
                 </div>
                 <StatusBadge status="model" label="Active Baseline" />
               </div>
@@ -199,19 +201,19 @@ export default function Models() {
                     <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Accuracy</div>
                       <div style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-                        {selectedModel.accuracy !== undefined ? `${(selectedModel.accuracy * 100).toFixed(2)}%` : '—'}
+                        {formatPercent(modelMetrics?.metrics?.accuracy ?? selectedModel.metrics?.accuracy, 2)}
                       </div>
                     </div>
                     <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>F1-Score</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>F1-Score (macro)</div>
                       <div style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--cyan-neon)', fontFamily: 'monospace' }}>
-                        {selectedModel.f1_score !== undefined ? `${(selectedModel.f1_score * 100).toFixed(2)}%` : '—'}
+                        {formatPercent(modelMetrics?.metrics?.f1_macro ?? selectedModel.metrics?.f1_macro, 2)}
                       </div>
                     </div>
                     <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Precision</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Precision (macro)</div>
                       <div style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--blue-primary)', fontFamily: 'monospace' }}>
-                        {selectedModel.precision !== undefined ? `${(selectedModel.precision * 100).toFixed(2)}%` : '—'}
+                        {formatPercent(modelMetrics?.metrics?.precision_macro ?? selectedModel.metrics?.precision_macro, 2)}
                       </div>
                     </div>
                   </div>
@@ -222,14 +224,51 @@ export default function Models() {
                       <BarChart2 size={16} style={{ color: 'var(--cyan-neon)' }} />
                       Confusion Matrix Breakdown
                     </div>
-                    <ConfusionMatrix matrix={modelMetrics?.confusion_matrix || selectedModel.confusion_matrix} />
+                    <ConfusionMatrix matrix={modelMetrics?.confusion_matrix} />
                   </div>
 
-                  {/* Hyperparameters & Context */}
+                  {modelMetrics?.calibration?.before && (
+                    <section style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontWeight: '600', fontSize: '0.85rem', marginBottom: '8px' }}>
+                        Probability Calibration
+                      </div>
+                      <div className="grid-2" style={{ gap: '12px', alignItems: 'center' }}>
+                        <ReliabilityDiagram
+                          before={modelMetrics.calibration.before}
+                          after={modelMetrics.calibration.after}
+                        />
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                          <div>Method: <strong>{modelMetrics.calibration.method}</strong></div>
+                          <div>Held-out rows: <strong>{modelMetrics.calibration.before.sample_count}</strong></div>
+                          <div>Before Brier: <strong>{modelMetrics.calibration.before.brier_score?.toFixed(4)}</strong></div>
+                          <div>Before ECE: <strong>{modelMetrics.calibration.before.expected_calibration_error?.toFixed(4)}</strong></div>
+                          {modelMetrics.calibration.after && (
+                            <>
+                              <div>After Brier: <strong>{modelMetrics.calibration.after.brier_score?.toFixed(4)}</strong></div>
+                              <div>After ECE: <strong>{modelMetrics.calibration.after.expected_calibration_error?.toFixed(4)}</strong></div>
+                            </>
+                          )}
+                          <p style={{ margin: '8px 0 0', fontSize: '0.72rem' }}>
+                            Measurements use the same held-out test set. Calibration is distribution-specific; model probabilities are not guarantees of real-world confidence.
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Context */}
                   <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem' }}>
-                    <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>Hyperparameters:</div>
-                    <div className="font-mono" style={{ color: 'var(--text-secondary)' }}>
-                      {JSON.stringify(selectedModel.hyperparameters || { test_size: 0.2, random_state: 42 }, null, 2)}
+                    <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>Recorded Metrics:</div>
+                    <div className="font-mono" style={{ color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>
+                      {JSON.stringify(
+                        Object.fromEntries(
+                          Object.entries(modelMetrics?.metrics ?? selectedModel.metrics ?? {}).filter(
+                            ([, v]) => typeof v === 'number'
+                          )
+                        ),
+                        null,
+                        2
+                      )}
                     </div>
                   </div>
 

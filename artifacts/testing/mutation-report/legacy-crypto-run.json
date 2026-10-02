@@ -1,0 +1,78 @@
+{
+  "status": "historical_unverified",
+  "source": "results/mutation-report.json",
+  "targets": [
+    "backend/app/cryptography/canonicalization.py",
+    "backend/app/cryptography/hash_chain.py",
+    "backend/app/cryptography/hashing.py",
+    "backend/app/cryptography/verifier.py"
+  ],
+  "tests": [
+    "backend/tests/unit/test_hashing.py",
+    "backend/tests/unit/test_verifier.py",
+    "backend/tests/unit/test_reference_differential.py",
+    "backend/tests/unit/test_security_redteam.py"
+  ],
+  "generated": 34,
+  "killed": 27,
+  "survived": 7,
+  "mutation_score_percent": 79.4,
+  "elapsed_seconds": 446.0,
+  "limitations": [
+    "The prior runner counted test-run timeouts and unexpected exceptions as killed.",
+    "Repeated same-line tokens could create duplicate mutation attempts.",
+    "The measurement covered only the cryptography modules."
+  ],
+  "survivors": [
+    {
+      "file": "backend/app/cryptography/hashing.py",
+      "line": 14,
+      "operator": "numeric_plus1",
+      "original": "65536",
+      "mutated": "65537"
+    },
+    {
+      "file": "backend/app/cryptography/verifier.py",
+      "line": 23,
+      "operator": "numeric_plus1",
+      "original": "2",
+      "mutated": "3"
+    },
+    {
+      "file": "backend/app/cryptography/verifier.py",
+      "line": 59,
+      "operator": "numeric_plus1",
+      "original": "1",
+      "mutated": "2"
+    },
+    {
+      "file": "backend/app/cryptography/verifier.py",
+      "line": 59,
+      "operator": "numeric_plus1",
+      "original": "1",
+      "mutated": "2",
+      "note": "The earlier report lists this same line/token mutation twice."
+    },
+    {
+      "file": "backend/app/cryptography/verifier.py",
+      "line": 103,
+      "operator": "numeric_plus1",
+      "original": "1000",
+      "mutated": "1001"
+    },
+    {
+      "file": "backend/app/cryptography/verifier.py",
+      "line": 103,
+      "operator": "numeric_plus1",
+      "original": "0",
+      "mutated": "1"
+    },
+    {
+      "file": "backend/app/cryptography/verifier.py",
+      "line": 107,
+      "operator": "boolean_flip",
+      "original": "and",
+      "mutated": "or"
+    }
+  ]
+}

@@ -448,6 +448,21 @@ code, pre, .font-mono {
   color: var(--text-muted);
 }
 
+.breadcrumb-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.breadcrumb-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .breadcrumb-separator {
   color: rgba(255, 255, 255, 0.2);
   font-size: 0.75rem;

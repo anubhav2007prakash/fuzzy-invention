@@ -65,7 +65,7 @@ class RandomForestDetector(BaseDetector):
         """Predict class probabilities."""
         if not self.is_fitted:
             raise ModelTrainingError("Model must be fitted before calling predict_proba.")
-        return self._model.predict_proba(X)
+        return self.apply_calibration(self._model.predict_proba(X))
 
     @property
     def feature_importances_(self) -> np.ndarray:
@@ -95,6 +95,7 @@ class RandomForestDetector(BaseDetector):
             "classes_": self.classes_,
             "feature_names": self.feature_names,
             "raw_model": self._model,
+            "calibrator": self.calibrator,
         }
         joblib.dump(payload, target)
 
@@ -113,4 +114,5 @@ class RandomForestDetector(BaseDetector):
         instance.classes_ = payload.get("classes_")
         instance.feature_names = payload.get("feature_names")
         instance._model = payload.get("raw_model")
+        instance.calibrator = payload.get("calibrator")
         return instance

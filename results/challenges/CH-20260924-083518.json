@@ -1,0 +1,474 @@
+{
+  "analysis": {
+    "drift_slope_per_run": 0.0,
+    "hash_identical_across_runs": true,
+    "interpretation": "Metric variation across repeated runs; non-zero drift slope indicates run-order dependence (seed variation or version drift).",
+    "metric_stats": {
+      "metrics.overall_mean_stability": {
+        "ci95_high": 1.0,
+        "ci95_low": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "n": 5,
+        "std": 0.0
+      }
+    },
+    "runs": 5,
+    "runtime_ms": {
+      "ci95_high": 317.205507,
+      "ci95_low": 296.765453,
+      "max": 315.6768,
+      "mean": 306.98548,
+      "min": 296.2618,
+      "n": 5,
+      "std": 8.230912
+    }
+  },
+  "challenge_id": "CH-20260924-083518",
+  "completed_at": "2026-09-24T03:05:20Z",
+  "configuration": {
+    "n_repetitions": 8,
+    "noise_levels": [
+      0.01,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "random_state": 42
+  },
+  "created_at": "2026-09-24T03:05:18Z",
+  "dataset": "Preset research question (synthetic-scope protocol data).",
+  "evidence_hash": "0482c3e4c9e38b2cacaad18435ed023376dba946e76bf55cc6b5716c9c064c91",
+  "experiment": "EXP-B",
+  "hypothesis": "SHAP attributions remain stable (cosine > 0.85) under low sensor noise and degrade gracefully as noise grows.",
+  "kind": "standard",
+  "question": "How does explanation stability change under controlled perturbations of network-flow features?",
+  "question_id": "Q1",
+  "reproducibility_package": "available via /research/reproducibility/export",
+  "runs": [
+    {
+      "configuration_hash": "f88394e79718573aa1fbb7235215444dfcacc0925c794a99eba58ad34e521397",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-B",
+      "metrics": {
+        "interpretation": "SHAP attributions demonstrated high stability (mean cosine similarity = 1.000) under sensor noise.",
+        "overall_mean_stability": 1.0,
+        "stability_curve": [
+          {
+            "noise_std": 0.01,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.05,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.1,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.2,
+            "stability_score": 1.0,
+            "std": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "model_type": "TreeSHAP (RandomForest)",
+        "n_repetitions": 8,
+        "noise_std_levels": [
+          0.01,
+          0.05,
+          0.1,
+          0.2
+        ],
+        "random_state": 42
+      },
+      "result_hash": "ef490b51629dd4c50be2819849da4eb9c63225e267d34cc95e5b58198c51a70b",
+      "status": "COMPLETED",
+      "title": "XAI Explanation Stability under Input Perturbation",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "EXP-B measures explanation stability, not detection quality.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "f88394e79718573aa1fbb7235215444dfcacc0925c794a99eba58ad34e521397",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-B",
+      "metrics": {
+        "interpretation": "SHAP attributions demonstrated high stability (mean cosine similarity = 1.000) under sensor noise.",
+        "overall_mean_stability": 1.0,
+        "stability_curve": [
+          {
+            "noise_std": 0.01,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.05,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.1,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.2,
+            "stability_score": 1.0,
+            "std": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "model_type": "TreeSHAP (RandomForest)",
+        "n_repetitions": 8,
+        "noise_std_levels": [
+          0.01,
+          0.05,
+          0.1,
+          0.2
+        ],
+        "random_state": 42
+      },
+      "result_hash": "ef490b51629dd4c50be2819849da4eb9c63225e267d34cc95e5b58198c51a70b",
+      "status": "COMPLETED",
+      "title": "XAI Explanation Stability under Input Perturbation",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "EXP-B measures explanation stability, not detection quality.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "f88394e79718573aa1fbb7235215444dfcacc0925c794a99eba58ad34e521397",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-B",
+      "metrics": {
+        "interpretation": "SHAP attributions demonstrated high stability (mean cosine similarity = 1.000) under sensor noise.",
+        "overall_mean_stability": 1.0,
+        "stability_curve": [
+          {
+            "noise_std": 0.01,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.05,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.1,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.2,
+            "stability_score": 1.0,
+            "std": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "model_type": "TreeSHAP (RandomForest)",
+        "n_repetitions": 8,
+        "noise_std_levels": [
+          0.01,
+          0.05,
+          0.1,
+          0.2
+        ],
+        "random_state": 42
+      },
+      "result_hash": "ef490b51629dd4c50be2819849da4eb9c63225e267d34cc95e5b58198c51a70b",
+      "status": "COMPLETED",
+      "title": "XAI Explanation Stability under Input Perturbation",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "EXP-B measures explanation stability, not detection quality.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "f88394e79718573aa1fbb7235215444dfcacc0925c794a99eba58ad34e521397",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-B",
+      "metrics": {
+        "interpretation": "SHAP attributions demonstrated high stability (mean cosine similarity = 1.000) under sensor noise.",
+        "overall_mean_stability": 1.0,
+        "stability_curve": [
+          {
+            "noise_std": 0.01,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.05,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.1,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.2,
+            "stability_score": 1.0,
+            "std": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "model_type": "TreeSHAP (RandomForest)",
+        "n_repetitions": 8,
+        "noise_std_levels": [
+          0.01,
+          0.05,
+          0.1,
+          0.2
+        ],
+        "random_state": 42
+      },
+      "result_hash": "ef490b51629dd4c50be2819849da4eb9c63225e267d34cc95e5b58198c51a70b",
+      "status": "COMPLETED",
+      "title": "XAI Explanation Stability under Input Perturbation",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "EXP-B measures explanation stability, not detection quality.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    },
+    {
+      "configuration_hash": "f88394e79718573aa1fbb7235215444dfcacc0925c794a99eba58ad34e521397",
+      "evidence_package": {
+        "status": "not_exported"
+      },
+      "experiment_id": "EXP-B",
+      "metrics": {
+        "interpretation": "SHAP attributions demonstrated high stability (mean cosine similarity = 1.000) under sensor noise.",
+        "overall_mean_stability": 1.0,
+        "stability_curve": [
+          {
+            "noise_std": 0.01,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.05,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.1,
+            "stability_score": 1.0,
+            "std": 0.0
+          },
+          {
+            "noise_std": 0.2,
+            "stability_score": 1.0,
+            "std": 0.0
+          }
+        ]
+      },
+      "parameters": {
+        "model_type": "TreeSHAP (RandomForest)",
+        "n_repetitions": 8,
+        "noise_std_levels": [
+          0.01,
+          0.05,
+          0.1,
+          0.2
+        ],
+        "random_state": 42
+      },
+      "result_hash": "ef490b51629dd4c50be2819849da4eb9c63225e267d34cc95e5b58198c51a70b",
+      "status": "COMPLETED",
+      "title": "XAI Explanation Stability under Input Perturbation",
+      "trust_profile": [
+        {
+          "explanation": "Detection trust is derived only from available F1 metrics.",
+          "label": "Detection",
+          "measurement": "EXP-B measures explanation stability, not detection quality.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Explanation stability is measured only for the XAI perturbation experiment.",
+          "label": "Explanation Stability",
+          "measurement": "Mean cosine SHAP stability from EXP-B when available.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "Evidence integrity uses controlled synthetic ledger tampering, not a production guarantee.",
+          "label": "Evidence Integrity",
+          "measurement": "Clean-chain verification and tamper detection rate from EXP-C when available.",
+          "status": "not_applicable",
+          "value": null
+        },
+        {
+          "explanation": "Reproducibility reflects whether the run records enough metadata to rerun and inspect the experiment.",
+          "label": "Reproducibility",
+          "measurement": "Manifest completeness, deterministic configuration, environment metadata, and canonical hashes.",
+          "status": "measured",
+          "value": 1.0
+        },
+        {
+          "explanation": "No real dataset health report exists for this run, so data quality is not scored.",
+          "label": "Data Quality",
+          "measurement": "No real dataset health report is attached to this synthetic benchmark.",
+          "status": "not_evaluated",
+          "value": null
+        }
+      ]
+    }
+  ],
+  "seed": 42,
+  "status": "COMPLETED",
+  "title": "Q1: How does explanation stability change under controlled perturbations of network-"
+}

@@ -1,0 +1,6 @@
+{
+  "dataset_id": null,
+  "disclaimer": "Current benchmark results use deterministic synthetic network-flow data with controlled properties. They are not real UNSW-NB15 or CICIDS2017 measurements.",
+  "scope": "synthetic",
+  "sha256": null
+}

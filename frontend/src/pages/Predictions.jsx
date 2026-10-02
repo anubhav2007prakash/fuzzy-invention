@@ -4,6 +4,7 @@ import { Activity, Play, Sparkles, ShieldCheck, RefreshCw, Zap, Layers, AlertCir
 import StatusBadge from '../components/common/StatusBadge';
 import Loader from '../components/common/Loader';
 import Alert from '../components/common/Alert';
+import { formatPercent, resolveConfidence, isAttackClass, isUncertainClass } from '../utils/format';
 import { modelsApi } from '../api/models';
 import { predictionsApi } from '../api/predictions';
 
@@ -235,15 +236,9 @@ export default function Predictions() {
     return <Loader text="Loading inference workspace..." size="lg" />;
   }
 
-  const isUncertain = latestResult?.is_uncertain || latestResult?.predicted_class === 'UNCERTAIN';
-  const isLatestAttack =
-    !isUncertain &&
-    (latestResult?.predicted_class === 1 || latestResult?.predicted_class === 'ATTACK');
-  const resultConfidence =
-    latestResult?.confidence ??
-    (latestResult?.probabilities && Object.keys(latestResult.probabilities).length > 0
-      ? Math.max(...Object.values(latestResult.probabilities))
-      : undefined);
+  const isUncertain = latestResult?.is_uncertain || isUncertainClass(latestResult?.predicted_class);
+  const isLatestAttack = !isUncertain && isAttackClass(latestResult?.predicted_class);
+  const resultConfidence = resolveConfidence(latestResult);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -301,7 +296,7 @@ export default function Predictions() {
                 >
                   {models.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.name} ({m.model_type}) — Acc: {(m.accuracy * 100).toFixed(1)}%
+                      {m.name} — F1: {formatPercent(m.metrics?.f1_macro)}
                     </option>
                   ))}
                 </select>
@@ -337,9 +332,9 @@ export default function Predictions() {
                 />
               </div>
 
-              {/* Confidence Threshold */}
+              {/* Probability Threshold */}
               <div className="form-group">
-                <label className="form-label">Confidence Threshold (optional)</label>
+                <label className="form-label">Minimum Class Probability (optional)</label>
                 <input
                   type="number"
                   className="form-input font-mono"
@@ -352,7 +347,7 @@ export default function Predictions() {
                   style={{ fontSize: '0.85rem' }}
                 />
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  If the model's max probability falls below this value, the result is reported as UNCERTAIN. Leave empty to accept every classification.
+                  If the model's maximum class probability falls below this value, the result is reported as UNCERTAIN. This score is not automatically calibrated real-world confidence.
                 </span>
               </div>
 
@@ -426,7 +421,7 @@ export default function Predictions() {
                     </div>
 
                     <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: 'var(--radius-sm)' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Confidence Score</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Maximum Class Probability</div>
                       <div style={{ fontSize: '1.4rem', fontWeight: '800', fontFamily: 'monospace', color: 'var(--cyan-neon)' }}>
                         {resultConfidence !== undefined ? `${(resultConfidence * 100).toFixed(2)}%` : '—'}
                       </div>
@@ -505,10 +500,10 @@ export default function Predictions() {
                   </thead>
                   <tbody>
                     {predictions.slice(0, 10).map((p) => {
-                      const isUnc = p.predicted_class === 'UNCERTAIN';
-                      const isAtk = p.predicted_class === 1 || p.predicted_class === 'ATTACK';
+                      const isUnc = isUncertainClass(p.predicted_class);
+                      const isAtk = isAttackClass(p.predicted_class);
                       return (
-                        <tr key={p.prediction_id || p.id}>
+                        <tr key={p.prediction_id}>
                           <td style={{ fontSize: '0.72rem' }}>
                             {p.created_at ? new Date(p.created_at).toLocaleTimeString() : 'Recent'}
                           </td>
@@ -516,7 +511,7 @@ export default function Predictions() {
                             <StatusBadge status={isUnc ? 'UNCERTAIN' : isAtk ? 'ATTACK' : 'BENIGN'} />
                           </td>
                           <td style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                            {p.probability !== undefined ? `${(p.probability * 100).toFixed(1)}%` : '—'}
+                            {formatPercent(resolveConfidence(p))}
                           </td>
                           <td>
                             <button

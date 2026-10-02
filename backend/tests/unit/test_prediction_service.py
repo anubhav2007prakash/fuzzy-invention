@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.app.core.config import settings
+from backend.app.cryptography.hashing import hash_file
 from backend.app.core.exceptions import ModelNotFoundError
 from backend.app.cryptography.canonicalization import canonicalize
 from backend.app.cryptography.hash_chain import GENESIS_PREVIOUS_HASH
@@ -73,7 +74,7 @@ class TestPredictionService(unittest.TestCase):
                 name="Prediction Test Dataset",
                 source="test",
                 file_name=self.csv_file,
-                file_hash="hash_pred_test",
+                file_hash=hash_file(str(self.data_raw_dir / self.csv_file)),
                 row_count=n_rows,
                 feature_count=4,
                 target_column="label",

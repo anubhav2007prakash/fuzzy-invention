@@ -45,6 +45,7 @@ class Dataset(Base):
 
     features    = relationship("DatasetFeature", back_populates="dataset", cascade="all, delete-orphan")
     experiments = relationship("Experiment", back_populates="dataset")
+    falsification_experiments = relationship("FalsificationExperiment", back_populates="dataset", cascade="all", foreign_keys="[FalsificationExperiment.alternative_dataset_id]")
 
 
 class DatasetFeature(Base):
@@ -137,6 +138,7 @@ class Prediction(Base):
     model        = relationship("ModelRecord", back_populates="predictions")
     explanation  = relationship("Explanation",  back_populates="prediction", uselist=False, cascade="all, delete-orphan")
     audit_record = relationship("AuditRecord",  back_populates="prediction", uselist=False, cascade="all, delete-orphan")
+    reviews      = relationship("AnalystReview", back_populates="prediction")
 
     @property
     def probabilities(self) -> Optional[Dict[str, float]]:
@@ -164,6 +166,27 @@ class Explanation(Base):
     @property
     def top_features(self) -> List[Dict[str, Any]]:
         return json.loads(self.top_features_json or "[]")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cryptographic artifact lineage
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ArtifactLineage(Base):
+    __tablename__ = "artifact_lineage"
+
+    artifact_id: Mapped[str] = mapped_column(String(160), primary_key=True)
+    artifact_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    parent_artifact_id: Mapped[Optional[str]] = mapped_column(
+        String(160), ForeignKey("artifact_lineage.artifact_id", ondelete="RESTRICT"),
+        nullable=True, index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=_utcnow)
+    version: Mapped[str] = mapped_column(String(50), nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    git_commit: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    experiment_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
+    metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -214,3 +237,16 @@ class ModelEvaluation(Base):
     experiment = relationship("Experiment",  back_populates="evaluations")
     model      = relationship("ModelRecord", back_populates="evaluations")
     dataset    = relationship("Dataset")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Human-in-the-loop review + researcher collaboration (re-exports)
+# ─────────────────────────────────────────────────────────────────────────────
+
+from backend.app.db.models.falsification import FalsificationExperiment, FalsificationResult
+from backend.app.db.models.falsification import FalsificationExperiment, FalsificationResult  # noqa: E402
+from backend.app.db.models.review import (  # noqa: E402
+    AnalystReview,
+    ExperimentComment,
+    ExperimentReviewState,
+)

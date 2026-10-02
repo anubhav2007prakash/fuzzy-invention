@@ -28,6 +28,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.app.core.config import settings
+from backend.app.cryptography.hashing import hash_file
 from backend.app.db.database import Base, get_db
 from backend.app.db.repositories.dataset_repository import DatasetRepository
 from backend.app.main import app
@@ -106,7 +107,7 @@ class TestExplanationsAPI(unittest.TestCase):
                 name="XAI Integration Dataset",
                 source="xai_fixtures",
                 file_name=csv_name,
-                file_hash="xai_test_hash_001",
+                file_hash=hash_file(str(raw_dir / csv_name)),
                 row_count=n_rows,
                 feature_count=4,
                 target_column="label",

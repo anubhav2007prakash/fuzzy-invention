@@ -111,7 +111,7 @@ class TestMigrationUpgrade(unittest.TestCase):
             versions = [r[0] for r in result]
 
         self.assertEqual(len(versions), 1)
-        self.assertEqual(versions[0], "0001_initial")
+        self.assertEqual(versions[0], "0003_lineage")
 
 
 class TestMigrationSchemaMatch(unittest.TestCase):
@@ -250,7 +250,7 @@ class TestMigrationDowngradeReupgrade(unittest.TestCase):
             versions = [r[0] for r in result]
 
         self.assertEqual(len(versions), 1)
-        self.assertEqual(versions[0], "0001_initial")
+        self.assertEqual(versions[0], "0003_lineage")
 
 
 class TestMigrationUrlOwnership(unittest.TestCase):
@@ -307,7 +307,7 @@ class TestMigrationUrlOwnership(unittest.TestCase):
             version = conn.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar()
-        self.assertEqual(version, "0001_initial")
+        self.assertEqual(version, "0003_lineage")
         tables = set(inspect(engine).get_table_names()) - {"alembic_version"}
         self.assertEqual(tables, _get_expected_tables())
         engine.dispose()

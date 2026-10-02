@@ -1,0 +1,29 @@
+{
+  "configuration": {
+    "n_blocks": 12,
+    "random_state": 42
+  },
+  "dataset_disclaimer": "Current benchmark results use deterministic synthetic network-flow data with controlled properties. They are not real UNSW-NB15 or CICIDS2017 measurements.",
+  "dataset_scope": "synthetic",
+  "environment": {
+    "numpy_version": "2.4.3",
+    "pandas_version": "3.0.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.14.3",
+    "shap_version": "0.52.0",
+    "sklearn_version": "1.8.0"
+  },
+  "experiment_id": "EXP-C",
+  "experiment_schema_version": 1,
+  "generated_at": "2026-10-01T18:40:12Z",
+  "git": {
+    "branch": "master",
+    "commit": "a5d5120",
+    "dirty_worktree": true
+  },
+  "plugins": [],
+  "random_seed": 42,
+  "result_artifact": "exp_c_ledger_integrity.json",
+  "status": "COMPLETED",
+  "title": "Cryptographic Audit Integrity & Adversarial Tamper Attacks (Synthetic Benchmarks)"
+}
